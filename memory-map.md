@@ -4,11 +4,11 @@ Final Fantasy Legend II Memory Map
 Cartridge
 ---------
 
-- Mapper: MBC2
-- ROM: 256 KiB (16 banks of 16 KiB each)
-- RAM: 512 nybbles
-- GBC Compatibility: no.
-- SGB Compatibility: no.
+- Mapper: MBC2.
+- ROM: 256 KiB (16 banks of 16 KiB each)..
+- RAM: 512 nybbles.
+- GBC Support: No.
+- SGB Support: No.
 
 ROM
 ---
