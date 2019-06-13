@@ -15,5 +15,8 @@
 *.sgm
 *.sys
 *.exe
+*.dll
+*.pdb
+*.lib
 *.chr
 *.pyc
