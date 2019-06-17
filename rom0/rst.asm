@@ -46,18 +46,15 @@ SECTION "ROM0_10", ROM0[$10]
 rst_wait_vblank_::
     jp wait_vblank
 
-; Returns from interrupt.
 SECTION "ROM0_13", ROM0[$13]
-reti_::
-    reti
+default_stat_handler_address::
+    DW default_stat_handler
 
-; Clears the d register, then falls through code that calls the dma routine. Purpose unknown.
-SECTION "ROM0_14", ROM0[$14]
-clear_d_oam_transfer::
-    ld d, $00
+SECTION "ROM0_15", ROM0[$15]
     nop
     nop
-    ; fallthrough
+    nop
+
 ; Performs an OAM DMA transfer.
 ;
 ; Arguments:

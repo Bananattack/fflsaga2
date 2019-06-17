@@ -193,7 +193,13 @@ set_stat_to_vertical_scale:
 ; ...
 
 ; Result:
-; - [stat_dispatcher] set to old handler in [stat_dispatcher_previous]
+; - [stat_dispatcher] is set to default_stat_handler
+SECTION "ROM0_2ECE", ROM0[$2ECE]
+set_default_stat_handler::
+; ...
+
+; Result:
+; - [stat_dispatcher] is set to old handler in [stat_dispatcher_previous]
 SECTION "ROM0_2EEC", ROM0[$2EEC]
 restore_stat_handler::
 ; ...
