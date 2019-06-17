@@ -9,8 +9,11 @@ oam_dma_transfer_routine:: DS 8
 SECTION "HRAM_FF88", HRAM[$FF88]
 current_rom_bank:: DS 1
 
+; Current buttons being held.
 SECTION "HRAM_FF89", HRAM[$FF89]
-joy_held_mask: DS 1
+joy_held_mask:: DS 1
 
+; Current buttons that were just pressed.
+; Repeated buttons will also show up here on an repeating interval.
 SECTION "HRAM_FF8A", HRAM[$FF8A]
-joy_pressed_mask: DS 1
+joy_pressed_mask:: DS 1

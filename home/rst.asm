@@ -376,7 +376,7 @@ banked_load::
 SECTION "ROM0_00D9", ROM0[$00D9]
 next_frame::
     push af
-    call $06B0
+    call prepare_map_oam
 .wait_vblank
     halt 
     ldh a, [$FF44]

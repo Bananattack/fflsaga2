@@ -1,8 +1,8 @@
 ; The OAM buffers used by the map code, alternates between the two buffers on a timer, to animate the sprites.
 SECTION "WRAM0_C000", WRAM0[$C000]
-oam_buffer0:: DS 160
+map_oam_buffer0:: DS 160
 SECTION "WRAM0_C100", WRAM0[$C100]
-oam_buffer1:: DS 160
+map_oam_buffer1:: DS 160
 
 ; A routine that does:
 ;
@@ -77,13 +77,13 @@ map_metatile_types:: DS 32
 
 ; Background palette.
 SECTION "WRAM0_C700", WRAM0[$C700]
-dmg_palette_bg DS 1
+dmg_palette_bg:: DS 1
 ; Object palette 1. Main palette for used for sprites.
 SECTION "WRAM0_C701", WRAM0[$C701]
-dmg_palette_obj0 DS 1
+dmg_palette_obj0:: DS 1
 ; Object palette 2. (Used for stone status effect?)
 SECTION "WRAM0_C702", WRAM0[$C702]
-dmg_palette_obj1 DS 1
+dmg_palette_obj1:: DS 1
 
 ; A routine that does:
 ;
@@ -113,16 +113,15 @@ map_oam_table_address:: DS 1
 
 ; Delay until the next joypad button repeat.
 SECTION "WRAM0_C774", WRAM0[$C774]
-joy_repeat_delay: DS 1
+joy_repeat_delay:: DS 1
 
 ; Which buttons are affected by the joypad button repeat.
 SECTION "WRAM0_C775", WRAM0[$C775]
-joy_repeat_mask: DS 1
+joy_repeat_mask:: DS 1
 
-; The OAM buffer used after already being processed by textbox-clipping code.
-; Also used for drawing OAM during menus.
+; The OAM buffer used during menus, and also for textbox-clipping during text events.
 SECTION "WRAM0_C100", WRAM0[$CC00]
-oam_buffer2:: DS 160
+menu_oam_buffer:: DS 160
 
 ; Map data is unpacked to RAM as a raw 64x64 grid of metatiles.
 ; $8x = indicates a character is in this cell
