@@ -1,6 +1,6 @@
 rst_hl_plus_a EQU $00
 rst_call_908 EQU $08
-rst_next_frame EQU $10
+rst_wait_vblank EQU $10
 rst_oam_dma_transfer EQU $18
 rst_call_800 EQU $20
 rst_bank_switch EQU $28
@@ -41,10 +41,10 @@ pop_hl_de_bc_af::
     pop af
     ret  
 
-; Waits for the vblank
+; Calls wait_vblank.
 SECTION "ROM0_10", ROM0[$10]
-rst_next_frame_::
-    jp $00D9
+rst_wait_vblank_::
+    jp wait_vblank
 
 ; Returns from interrupt.
 SECTION "ROM0_13", ROM0[$13]
@@ -338,7 +338,7 @@ SECTION "ROM0_00AC", ROM0[$00AC]
 routine_00AC::    
     call $1674
     call memcpy16
-SECTION "ROM0_00AC", ROM0[$00AC]
+SECTION "ROM0_00B2", ROM0[$00B2]
 label_00B2::
     jp $1691
 
@@ -366,6 +366,7 @@ routine_00CA::
     rst rst_bank_switch
     push af
     call routine_00AC
+SECTION "ROM0_00CF", ROM0[$00CF]
 label_00CF::
     pop af
     rst rst_bank_switch
@@ -393,7 +394,7 @@ banked_load::
 ; Calls a routine that prepares OAM buffer usage.
 ; Then waits until inside the vblank period.
 SECTION "ROM0_00D9", ROM0[$00D9]
-next_frame::
+wait_vblank::
     push af
     call prepare_map_oam
 .wait_vblank

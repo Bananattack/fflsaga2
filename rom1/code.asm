@@ -74,7 +74,7 @@ character_choose_name::
 ; ...
 
 SECTION "ROM1_6838", ROMX[$6838], BANK[1]
-title_menu::
+title_screen::
 ; ...
 
 SECTION "ROM1_68C1", ROMX[$68C1], BANK[1]
