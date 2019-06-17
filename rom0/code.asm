@@ -119,17 +119,17 @@ map_remap_metatile_index::
 ; ...
 
 ; Arguments:
-; hl = tilemap VRAM dest (top-left corner)
-; [map_tilemap_buffer] = $2C (44) bytes of tile row data
-; (top-left, top-right, bottom-left, bottom-right, ...)
+; - hl = tilemap VRAM dest (top-left corner)
+; - [map_tilemap_buffer] = $2C (44) bytes of tile row data
+;   (top-left, top-right, bottom-left, bottom-right, ...)
 SECTION "ROM_2155", ROM0[$2155]
 map_tilemap_copy_row::
 ; ...
 
 ; Arguments:
-; hl = tilemap VRAM dest (top-left corner)
-; [map_tilemap_buffer] = $24 (36) bytes of tile column data
-; (top-left, top-right, bottom-left, bottom-right, ...)
+; - hl = tilemap VRAM dest (top-left corner)
+; - [map_tilemap_buffer] = $24 (36) bytes of tile column data
+;   (Byte order:top-left, top-right, bottom-left, bottom-right, ...)
 SECTION "ROM_2178", ROM0[$2178]
 map_tilemap_copy_column::
 ; ...
@@ -179,10 +179,11 @@ cross_wipe_in::
 ; ...
 
 ; Arguments:
-; bc = new handler
+; - bc = new handler
 ;
 ; Result:
-; [$C706] aka [stat_dispatcher] set new handler, [$C473] has old handler
+; - [stat_dispatcher_previous] is set to the previous stat handler
+; - [stat_dispatcher] is set to the new handler
 SECTION "ROM0_2E9C", ROM0[$2E9C]
 set_stat_handler::
 ; ...
@@ -192,7 +193,7 @@ set_stat_to_vertical_scale:
 ; ...
 
 ; Result:
-; [$C706] set to old handler in [$C473]
+; - [stat_dispatcher] set to old handler in [stat_dispatcher_previous]
 SECTION "ROM0_2EEC", ROM0[$2EEC]
 restore_stat_handler::
 ; ...

@@ -65,7 +65,7 @@ map_tileset_index:: DS 1
 ; The previously loaded value of the stat dipatcher code.
 ; Backed up here during certain temporary operations that override the stat dispatcher.
 SECTION "WRAM0_C473", WRAM0[$C473]
-stat_dispatcher_prev:: DS 3
+stat_dispatcher_previous:: DS 3
 
 ; The animation timer used to cycle which OAM buffer is used for drawing.
 SECTION "WRAM0_C4FF", WRAM0[$C4FF]
@@ -120,7 +120,7 @@ SECTION "WRAM0_C775", WRAM0[$C775]
 joy_repeat_mask:: DS 1
 
 ; The OAM buffer used during menus, and also for textbox-clipping during text events.
-SECTION "WRAM0_C100", WRAM0[$CC00]
+SECTION "WRAM0_CC00", WRAM0[$CC00]
 menu_oam_buffer:: DS 160
 
 ; Map data is unpacked to RAM as a raw 64x64 grid of metatiles.

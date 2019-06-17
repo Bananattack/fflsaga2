@@ -1,0 +1,13 @@
+SECTION "ROM1_5000", ROMX[$5000], BANK[1]
+main_menu_entry::
+; ...
+SECTION "ROM1_5003", ROMX[$5003], BANK[1]
+party_order_menu_entry::
+; ...
+SECTION "ROM1_5006", ROMX[$5006], BANK[1]
+character_creator_secondary_entry::
+; ...
+SECTION "ROM1_500F", ROMX[$500F], BANK[1]
+title_screen_entry::
+; ...
+

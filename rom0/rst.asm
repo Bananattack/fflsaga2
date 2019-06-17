@@ -47,7 +47,7 @@ rst_next_frame_::
     jp $00D9
 
 ; Returns from interrupt.
-SECTION "ROM0_11", ROM0[$11]
+SECTION "ROM0_13", ROM0[$13]
 reti_::
     reti
 
@@ -226,7 +226,7 @@ memclear8::
 SECTION "ROM0_006D", ROM0[$006D]
 memset8::
 .loop
-    ldi [hl], a
+    ld [hl+], a
     dec b
     jr nz, .loop
     ret  
@@ -285,7 +285,7 @@ SECTION "ROM0_0080", ROM0[$0080]
 memcpy8::
     push af
 .loop
-    ldi a,[hl]
+    ld a, [hl+]
     ld [de],a
     inc de
     dec b
@@ -308,7 +308,7 @@ SECTION "ROM0_0089", ROM0[$0089]
 memcpy16::
     push af
 .loop
-    ldi a, [hl]
+    ld a, [hl+]
     ld [de], a
     inc de
     dec bc
@@ -322,34 +322,53 @@ memcpy16::
 SECTION "ROM0_0094", ROM0[$0094]
 routine_0094::
     call $1674
-    call $006D
-    jr $00B2
+    call memset8
+    jr label_00B2
+SECTION "ROM0_009C", ROM0[$009C]
+routine_009C::
     call $1674
-    call $0073
-    jr $00B2
+    call memset16
+    jr label_00B2
+SECTION "ROM0_00A4", ROM0[$00A4]
+routine_00A4::    
     call $1674
-    call $0080
-    jr $00B2
+    call memcpy8
+    jr label_00B2
+SECTION "ROM0_00AC", ROM0[$00AC]
+routine_00AC::    
     call $1674
-    call $0089
+    call memcpy16
+SECTION "ROM0_00AC", ROM0[$00AC]
+label_00B2::
     jp $1691
-    rst  $28
+
+; Purpose unknown.
+SECTION "ROM0_00B5", ROM0[$00B5]
+routine_00B5::
+    rst rst_bank_switch
     push af
-    call $0080
-    jr $00CF
-    rst $28
+    call memcpy8
+    jr label_00CF
+SECTION "ROM0_00BC", ROM0[$00BC]
+routine_00BC::
+    rst rst_bank_switch
     push af
-    call $0089
-    jr $00CF
-    rst $28
+    call memcpy16
+    jr label_00CF
+SECTION "ROM0_00C3", ROM0[$00C3]
+routine_00C3::
+    rst rst_bank_switch
     push af
-    call $00A4
-    jr $00CF
-    rst $28
+    call routine_00A4
+    jr label_00CF
+SECTION "ROM0_00CA", ROM0[$00CA]
+routine_00CA::
+    rst rst_bank_switch
     push af
-    call $00AC
+    call routine_00AC
+label_00CF::
     pop af
-    rst $28
+    rst rst_bank_switch
     ret 
 
 ; Bank-switched load of some ROM address in another bank.
@@ -378,7 +397,7 @@ next_frame::
     push af
     call prepare_map_oam
 .wait_vblank
-    halt 
+    DB $76 ; single-opcode halt
     ldh a, [$FF44]
     cp a, 144
     jr c, .wait_vblank
@@ -427,14 +446,16 @@ oam_dma_transfer_code::
     dec a
     jr nz, .loop
     ret
+
+SECTION "ROM0_00FA", ROM0[$00FA]
+    ; unused space, nop-filled.
     nop
     nop  
     nop  
-    nop  
-    nop  
-    nop  
     nop
+    nop  
 
 SECTION "ROM0_0100", ROM0[$0100]
 reset_entry::
-    jp $0200
+    nop
+    jp reset
