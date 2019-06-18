@@ -2,25 +2,501 @@ SECTION "ROM0_0200", ROM0[$0200]
 reset::
 ; ...
 
-; Arguments: a = new bank
-; Result: a = old bank
-SECTION "ROM0_04B1", ROM0[$04B1]
-bank_switch::
+SECTION "ROM0_02F0", ROM0[$02F0]
+routine_02F0::
+    push af
+    push bc
+    ld b, $08
+    xor a
+    ld c, a
+.loop
+    rr h
+    jr nc, .skip
+    add l
+.skip    
+    rra  
+    rr c
+    dec b
+    jr nz, .loop
+
+    ld h, a
+    ld l, c
+    pop bc
+    pop af
+    ret
+
+SECTION "ROM0_306", ROM0[$0306]
+routine_0306::
+    push af
+    push bc
+    ld a, l
+    cpl  
+    ld c, a
+    inc c
+    xor a
+    ld b, $08
+.loop
+    sla h
+    rla  
+    add c
+    jr c, .skip
+    add l
+    inc h
+.skip
+    dec b
+    jr nz, .loop
+
+    ld l, a
+    ld a, h
+    cpl  
+    ld h, a
+    pop bc
+    pop af
+    ret  
+
+SECTION "ROM0_0321", ROM0[$0321]
+routine_0321::
+    push af
+    push bc
+    ld c, l
+    ld b, h
+    ld hl, $0000
+    ld a, $10
+.loop
+    rr d
+    rr e
+    jr nc, .skip
+    add hl, bc
+.skip
+    rr h
+    rr l
+    dec a
+    jr nz, .loop
+    rr d
+    rr e
+    pop bc
+    pop af
+    ret  
+
+SECTION "ROM0_033F", ROM0[$033F]
+routine_033F::
+    di   
+    push af
+    push bc
+    ld c, l
+    ld b, h
+    ld hl, .done
+    push hl
+    ld [ld_sp_ret_dispatcher + 1], sp
+    ld a, e
+    cpl  
+    ld l, a
+    ld a, d
+    cpl  
+    ld h, a
+    inc hl
+    ld sp, hl
+    ld hl, $0000
+    ld a, $10
+.loop
+    sla c
+    rl b
+    rl l
+    rl h
+    add hl, sp
+    jr c, .skip
+    add hl, de
+    inc c
+.skip
+    dec a
+    jr nz, .loop
+    jp ld_sp_ret_dispatcher
+
+.done
+    push hl
+    ld a, c
+    cpl  
+    ld l, a
+    ld a, b
+    cpl  
+    ld h, a
+    pop de
+    pop bc
+    pop af
+    reti 
+
+SECTION "ROM0_0376", ROM0[$0376]
+routine_0376::
+    ldh [$FF90], a
+    push de
+    ld a, l
+    sub e
+    ld l, a
+    ld a, h
+    sbc d
+    ld h, a
+    jr c, .else
+    or l
+    jr .done
+.else
+    or l
+    scf  
+.done
+    pop de
+    ldh a, [$FF90]
+    ret  
+
+SECTION "ROM0_038A", ROM0[$038A]
+routine_038A::
+    push hl
+    call routine_0376
+    pop hl
+    ret 
+
 ; ...
 
 SECTION "ROM0_0469", ROM0[$0469]
 joy_update::
 ; ...
 
+SECTION "ROM0_04A6", ROM0[$04A6]
+routine_04A6::
+    push af
+.loop
+    call $068F
+    ldh a, [joy_held_mask]
+    and a
+    jr nz, .loop
+    pop af
+    ret
+
+; Arguments:
+; - a = new bank
+;
+; Result:
+; - MBC ROM bank is switched to the new bank.
+; - [current_rom_bank] is also updated to the new bank.
+; - a = old bank.
+SECTION "ROM0_04B1", ROM0[$04B1]
+bank_switch::
+    push bc
+    ld   c, a
+    ldh  a, [current_rom_bank]
+    ld   b, a
+    ld   a, c
+    ldh  [current_rom_bank], a
+    ld   [$2100], a
+    ld   a, b
+    pop  bc
+    ret  
 
 SECTION "ROM0_04BF", ROM0[$04BF]
 enter_menu_from_map::
+    push af
+    push hl
+    push de
+    ld hl, sp + 6
+    ld a, [hl]
+    ld e, a
+    add a, $03
+    ldi [hl], a
+    ld d, [hl]
+    jr nc, .skip
+    inc [hl]
+.skip
+    ld l, e
+    ld h, d
+    ldi a, [hl]
+    ld [ld_a_jmp_dispatcher + 3], a
+    ldi a, [hl]
+    ld [ld_a_jmp_dispatcher + 4], a
+    ld a, [hl]
+    rst rst_bank_switch
+    ld e, a
+    ld hl, sp + 5
+    ld a, [hl]
+    di   
+    ld [hl], e
+    ld [ld_a_jmp_dispatcher + 1], a
+    pop de
+    pop hl
+    pop af
+    dec sp
+    ei   
+    call ld_a_jmp_dispatcher
+    push af
+    push hl
+    ld hl, sp + 4
+    ld a, [hl]
+    rst rst_bank_switch
+    pop hl
+    pop af
+    inc sp
+    ret
+
+; Disables save RAM access, and enables interrupts afterwards.
+SECTION "ROM0_04F4", ROM0[$04F4]
+disable_save_ram::
+    push af
+    xor a
+    ld [$0000], a
+    pop af
+    reti 
+
+; Enables save RAM access, and disables interrupts beforehand.
+SECTION "ROM0_04FB", ROM0[$04FB]
+enable_save_ram::
+    di   
+    push af
+    ld a, $0A
+    ld [$0000], a
+    pop af
+    ret  
+
+; Arguments: 
+; - a = operand
+; - c = bit index (modulo 8)
+;
+; Result:
+; - a is trashed.
+; - flags are affected in same way as a `bit n, a` instruction,
+;   but the bit index is determined by c.
+SECTION "ROM0_0504", ROM0[$0504]
+test_bit::
+    push bc
+    ld b, a
+    ld a, c
+    ld c, $47
+    jr launch_bit_op_dispatcher
+
+; Arguments: 
+; a = operand
+; c = bit index (modulo 8)
+;
+; Result:
+; - a and flags are affected in same way as a `set n, a` instruction,
+;   but the bit index is determined by c.
+SECTION "ROM0_050B", ROM0[$050B]
+set_bit::
+    push bc
+    ld b, a
+    ld a, c
+    ld c, $C7
+    jr launch_bit_op_dispatcher
+
+; Arguments: 
+; a = operand
+; c = bit index (modulo 8)
+;
+; Result:
+; - a and flags are affected in same way as a `res n, a` instruction,
+;   but the bit index is determined by c.
+SECTION "ROM0_0512", ROM0[$0512]
+reset_bit::
+    push bc
+    ld b, a
+    ld a, c
+    ld c, $87
+    ; fallthrough
+
+; Arguments:
+; a = bit index
+; c = base opcode
+;
+; Result:
+; - runs the opcode sequence `$CB, (a << 3 | c), $C9`, and the results reflect this.
+; - pops bc and returns.
+SECTION "ROM0_0517", ROM0[$0517]
+launch_bit_op_dispatcher::
+    and a, $07
+    rlca 
+    rlca 
+    rlca 
+    or c
+    ld [bitwise_op_dispatcher + 1], a
+    ld a, b
+    call bitwise_op_dispatcher
+    pop bc
+    ret 
+
+; Multiplies both d and e by 8, independently.
+SECTION "ROM0_0526", ROM0[$0526]
+d_times_8_e_times_8::
+    push af
+
+    ; d = d * 8
+    ld a, d
+    add a
+    add a
+    add a
+    ld d, a
+
+    ; e = e * 8
+    ld a, e
+    add a
+    add a
+    add a
+    ld e, a
+
+    pop af
+    ret
+
+SECTION "ROM0_0533", ROM0[$0533]
+routine_0533::
+    xor a
+    ldh [$FF9B], a
+    xor a
+    ld [$C7CA], a
+    ld [$C7CF], a
+    dec a
+    ld b, $80
+    ld hl, $C380
+    jp memset8
+    ld hl, $FF97
+    ld a, $FF
+    ldi [hl], a
+    ldi [hl], a
+    ldi [hl], a
+    ld [hl], a
+    ret
+
+SECTION "ROM0_0550", ROM0[$0550]
+routine_0550::
+    ld hl, $7F00
+    ld de, $8700
+    ld b, $00
+    ld a, $03
+    jp banked_vramcpy8
+    ldh [$FF90], a
+    ld a, $0D
+    rst rst_bank_switch
+    push af
+    ldh a, [$FF90]
+    ld l, a
+    ld h, $0A
+    call $02F0
+    ld de, $6F80
+    add hl, de
+    push hl
+    ld a, [$C709]
+    ld hl, $C204
+    call routine_05D9
+    ld e, l
+    ld d, h
+    ldh a, [$FF90]
+    ld [de], a
+    inc de
+    pop hl
+    ldi a, [hl]
+    inc hl
+    ldh [$FF92], a
+    swap a
+    and a, $0F
+    ld [de], a
+    ldh [$FF91], a
+    inc de
+    xor a
+    ld [de], a
+    inc de
+    ld c, [hl]
+    inc hl
+    ld b, [hl]
+    inc hl
+    ld a, c
+    ld [de], a
+    inc de
+    ld a, b
+    ld [de], a
+    inc de
+    ld a, c
+    ld [de], a
+    inc de
+    ld a, b
+    ld [de], a
+    inc de
+    ld b, $04
+    call memcpy8
+    ldh a, [$FF92]
+    and a, $07
+    inc a
+    ld b, a
+    ldh [$FF90], a
+    ldi a, [hl]
+    ld h, [hl]
+    ld l, a
+    push de
+.loop
+    ldi a, [hl]
+    ld [de], a
+    inc de
+    inc de
+    dec b
+    jr nz, .loop
+
+    pop de
+    ld a, $0C
+    rst rst_bank_switch
+    ldh a, [$FF90]
+    ld b, a
+.loop2
+    ld a, [de]
+    inc de
+    ld hl, $7E80
+    rst rst_hl_plus_a
+    ldh a, [$FF91]
+    cp a, $03
+    ld a, [hl]
+    jr nz, .skip
+    cp a, $FE
+    jr z, .skip
+    srl a
+.skip
+    ld [de], a
+    inc de
+    dec b
+    jr nz, .loop2
+
+    pop af
+    rst rst_bank_switch
+    ret
+
+SECTION "ROM0_05D9", ROM0[$05D9]
+routine_05D9::
 ; ...
 
+; Arguments:
 ; [map_oam_table_address] = map oam source
-SECTION "ROM0_06BA", ROM0[$068A]
+SECTION "ROM0_068A", ROM0[$068A]
 transfer_map_oam::
-; ...
+    ld a, [map_oam_table_address]
+    rst rst_oam_dma_transfer
+    ret
+
+SECTION "ROM0_068F", ROM0[$068F]
+routine_068F::
+    push af
+    push bc
+    rst rst_wait_vblank
+    ld c, $CC
+    ldh a, [$FF8B]
+    and a
+    jr nz, .skip
+    ld a, [$C764]
+    and a
+    jr nz, .skip
+    ldh a, [menu_mode]
+    rrca 
+    jr c, .skip
+    rrca 
+    jr c, .skip
+    ld a, [map_oam_table_address]
+    ld c, a
+.skip
+    ld a, c
+    rst rst_oam_dma_transfer
+    pop bc
+    pop af
+    ret
 
 ; Prepares the map oam table for use before it is copied.
 ;
@@ -39,7 +515,56 @@ transfer_map_oam::
 ;   the very last sprite be used as a cursor without clipping.
 SECTION "ROM0_06B0", ROM0[$06B0]
 prepare_map_oam::
-; ...
+    push bc
+    push de
+    push hl
+    ld hl, map_oam_animation_timer
+    inc [hl]
+    ld a, [hl]
+    ld hl, $C000
+    and a, $10
+    swap a
+    or h
+    ld h, a
+    ld [map_oam_table_address], a
+    ld a, [map_oam_clip_enable]
+    and a
+    jr z, .done
+
+    ld b, $28
+    ldh a, [menu_mode]
+    and a
+    jr z, .skip
+    ld b, $24
+.skip
+    ld c, $5A
+    ld de, $CC00
+.loop
+    ldi a, [hl]
+    cp c
+    jr c, .skip2
+    xor a
+.skip2
+    ld [de], a
+    inc e
+    ldi a, [hl]
+    ld [de], a
+    inc e
+    ldi a, [hl]
+    ld [de], a
+    inc e
+    ldi a, [hl]
+    ld [de], a
+    inc e
+    dec b
+    jr nz, .loop
+    ld a, $CC
+    ld [map_oam_table_address],a
+.done
+    pop hl
+    pop de
+    pop bc
+    ret  
 
 SECTION "ROM0_0F86", ROM0[$0F86]
 character_creator_event::

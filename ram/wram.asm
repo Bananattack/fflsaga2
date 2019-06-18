@@ -24,12 +24,12 @@ ld_a_jmp_dispatcher:: DS 5
 
 ; A routine that does:
 ;
-; bit N, register
+; bit N, register (CB-prefixed opcode)
 ; ret
 ;
-; The bit test opcode gets replaced at runtime.
+; The bitwise opcode after the CB-prefix gets replaced at runtime.
 SECTION "WRAM0_C0E9", WRAM0[$C0E9]
-bit_test_dispatcher:: DS 3
+bitwise_op_dispatcher:: DS 3
 
 ; A buffer used to store tiles that will be copied to the background tilemap VRAM.
 SECTION "WRAM0_C400", WRAM0[$C400]
