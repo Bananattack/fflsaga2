@@ -132,12 +132,22 @@ stat_entry::
 SECTION "ROM0_004B", ROM0[$004B]
 a_times_64::
     add a
+    ; fallthrough
+a_times_32::
     add a
+    ; fallthrough
+a_times_16::
     add a
+    ; fallthrough
+a_times_8::
     add a
+    ; fallthrough
+a_times_4::
     add a
+    ; fallthrough
+a_times_2::
     add a
-    ret  
+    ret
 
 ; Multiplies hl by 128, via repeated self-addition.
 ;
@@ -149,11 +159,23 @@ a_times_64::
 SECTION "ROM0_0052", ROM0[$0052]
 hl_times_128::
     add hl, hl
+    ; fallthrough
+hl_times_64::
     add hl, hl
+    ; fallthrough
+hl_times_32::
     add hl, hl
+    ; fallthrough
+hl_times_16::
     add hl, hl
+    ; fallthrough
+hl_times_8::
     add hl, hl
+    ; fallthrough
+hl_times_4::
     add hl, hl
+    ; fallthrough
+hl_times_2::
     add hl, hl
     ret
 
@@ -168,12 +190,26 @@ hl_times_128::
 SECTION "ROM0_005A", ROM0[$005A]
 hl_times_128_plus_bc::
     add hl, hl
+    ; fallthrough
+hl_times_64_plus_bc::
     add hl, hl
+    ; fallthrough
+hl_times_32_plus_bc::
     add hl, hl
+    ; fallthrough
+hl_times_16_plus_bc::    
     add hl, hl
+    ; fallthrough
+hl_times_8_plus_bc::    
     add hl, hl
+    ; fallthrough
+hl_times_4_plus_bc::    
     add hl, hl
+    ; fallthrough
+hl_times_2_plus_bc::    
     add hl, hl
+    ; fallthrough
+hl_plus_bc::
     add hl, bc
     ret
 
@@ -188,12 +224,26 @@ hl_times_128_plus_bc::
 SECTION "ROM0_0063", ROM0[$0063]
 hl_times_128_plus_de::
     add hl, hl
+    ; fallthrough
+hl_times_64_plus_de::
     add hl, hl
+    ; fallthrough
+hl_times_32_plus_de::
     add hl, hl
+    ; fallthrough
+hl_times_16_plus_de::
     add hl, hl
+    ; fallthrough
+hl_times_8_plus_de::
     add hl, hl
+    ; fallthrough
+hl_times_4_plus_de::
     add hl, hl
+    ; fallthrough
+hl_times_2_plus_de::
     add hl, hl
+    ; fallthrough
+hl_plus_de::
     add hl, de
     ret
 

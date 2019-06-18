@@ -153,17 +153,270 @@ routine_038A::
     pop hl
     ret 
 
-; ...
+
+SECTION "ROM0_0390", ROM0[$0390]
+routine_0390::
+    ldh [$FF90], a
+    push de
+    push hl
+    ld a, [de]
+    add [hl]
+    ld [de], a
+    inc de
+    inc hl
+    ld a, [de]
+    adc [hl]
+    ld [de], a
+    inc de
+    inc hl
+    ld a, [de]
+    adc [hl]
+    ld [de], a
+    pop hl
+    pop de
+    ldh a,[$FF90]
+    ret
+
+SECTION "ROM0_03A6", ROM0[$03A6]
+routine_03A6::
+    ldh [$FF90],a
+    push bc
+    push de
+    push hl
+    ld a,[de]
+    sub [hl]
+    ld [de],a
+    ld c,a
+    inc de
+    inc hl
+    ld a,[de]
+    sbc [hl]
+    ld [de],a
+    ld b,a
+    inc de
+    inc hl
+    ld a,[de]
+    sbc [hl]
+    ld [de],a
+    jr label_03CD
+
+SECTION "ROM0_03BC", ROM0[$03BC]
+routine_03BC::
+    ldh [$FF90], a
+    push bc
+    push de
+    push hl
+    ld a, [de]
+    sub [hl]
+    ld c, a
+    inc de
+    inc hl
+    ld a, [de]
+    sbc [hl]
+    ld b, a
+    inc de
+    inc hl
+    ld a, [de]
+    sbc [hl]
+    ; fallthrough
+
+label_03CD::
+    jr c, .else
+    or c
+    or b
+    jr .done
+.else
+    or c
+    or b
+    scf
+.done
+    pop hl
+    pop de
+    pop bc
+    ldh a, [$FF90]
+    ret
+
+SECTION "ROM0_03DC", ROM0[$03DC]
+routine_03DC::
+    push af
+    push bc
+    push de
+    push hl
+    push de
+    ld l, e
+    ld h, d
+    ld e, [hl]
+    inc hl
+    ld d, [hl]
+    inc hl
+    ld l, [hl]
+    ld h, a
+    ld b, $18
+    xor a
+.loop
+    rr l
+    rr d
+    rr e
+    jr nc, .skip
+    add h
+.skip
+    rra  
+    dec b
+    jr nz, .loop
+
+    rr l
+    rr d
+    rr e
+    ld c,l
+    pop hl
+    ld [hl], e
+    inc hl
+    ld [hl], d
+    inc hl
+    ld [hl], c
+    inc hl
+    ld [hl], a
+    jp pop_hl_de_bc_af
+
+SECTION "ROM0_040B", ROM0[$040B]
+routine_040B::
+    push bc
+    push de
+    push hl
+    ld l, e
+    ld h, d
+    ld c, a
+    cpl  
+    ld b, a
+    inc b
+    push hl
+    ld e, [hl]
+    inc hl
+    ld d, [hl]
+    inc hl
+    ld a, [hl]
+    ld h, c
+    ld c, a
+    xor a
+    ld l, $18
+.loop
+    sla e
+    rl d
+    rl c
+    rla  
+    add b
+    jr c, .skip
+    add h
+    inc e
+.skip
+    dec l
+    jr nz, .loop
+
+    pop hl
+    ld b, a
+    ld a, e
+    cpl  
+    ldi [hl], a
+    ld a, d
+    cpl  
+    ldi [hl], a
+    ld a, c
+    cpl  
+    ld [hl], a
+    ld a, b
+    pop hl
+    pop de
+    pop bc
+    ret
+
+SECTION "ROM0_043E", ROM0[$043E]
+routine_043E::
+    push de
+    push hl
+    ld hl, $C0A0
+    rst rst_hl_plus_a
+    inc [hl]
+    ld l, [hl]
+    ld h, $40
+    ld a, $0F
+    rst rst_bank_switch
+    ld h, [hl]
+    rst rst_bank_switch
+    ld a, e
+    cp a, $FF
+    jr z, .done
+    ld a, d
+    and a
+    jr z, .done
+    cp e
+    jr z, .done
+    sub e
+    ld l,a
+    cp a, $FF
+    ld a,h
+    jr z, .skip
+    inc l
+    call routine_0306
+    ld a,l
+.skip
+    add e
+.done
+    pop hl
+    pop de
+    ret  
 
 SECTION "ROM0_0469", ROM0[$0469]
 joy_update::
-; ...
+    ldh a, [joy_held_mask]
+    ld c, a
+    ld a, [joy_repeat_mask]
+    cp c
+    jr nz, .changed_buttons
+    ld a, [joy_repeat_delay]
+    dec a
+    jr z, .repeat_activated
+.repeat_cooldown
+    ld [joy_repeat_delay], a
+    xor a
+    ldh [joy_pressed_mask], a
+    ret
+.repeat_activated
+    ld a, $05
+    ld [joy_repeat_delay], a
+    ld a, c
+    ldh [joy_pressed_mask], a
+    ret
+.changed_buttons
+    ld a, $1E
+    ld [joy_repeat_delay], a
+    ld a,c
+    ldh [joy_pressed_mask], a
+    ld [joy_repeat_mask], a
+    ret  
+
+SECTION "ROM0_0494", ROM0[$0494]
+routine_0494::
+    call joy_update
+    call routine_068F
+    ldh a, [joy_pressed_mask]
+    ret
+
+SECTION "ROM0_049D", ROM0[$049D]
+routine_049D::
+    push af
+.loop
+    rst rst_wait_vblank
+    ldh a, [$FF89]
+    and a
+    jr nz, .loop
+    pop af
+    ret  
 
 SECTION "ROM0_04A6", ROM0[$04A6]
 routine_04A6::
     push af
 .loop
-    call $068F
+    call routine_068F
     ldh a, [joy_held_mask]
     and a
     jr nz, .loop
@@ -374,7 +627,7 @@ routine_0550::
     ldh a, [$FF90]
     ld l, a
     ld h, $0A
-    call $02F0
+    call routine_02F0
     ld de, $6F80
     add hl, de
     push hl
@@ -462,7 +715,162 @@ routine_0550::
 
 SECTION "ROM0_05D9", ROM0[$05D9]
 routine_05D9::
-; ...
+    push bc
+    ld b, a
+    ldh a, [$FF8B]
+    and a
+    jr z, .else
+    ld a, b
+    add h
+    ld h, a
+    jr .done
+.else
+    ld a, b
+    call routine_05EF
+    call a_times_32
+    rst rst_hl_plus_a
+.done
+    pop bc
+    ret  
+
+SECTION "ROM0_05EF", ROM0[$05EF]
+routine_05EF::
+    push bc
+    cp a, $04
+    jr c, .else
+    ld a, $04
+    jr .done
+.else
+    ld b, a
+    inc b
+    ld a, [$C2A0]
+    rlca
+    rlca
+.loop
+    rrca 
+    rrca 
+    dec b
+    jr nz, .loop
+    and a, $03
+.done
+    pop bc
+    ret
+
+SECTION "ROM0_0608", ROM0[$0608]
+routine_0608::
+    ldh  [$FF90], a
+    push de
+    ld e, $00
+    call routine_063E
+    and a
+    pop de
+    ldh a, [$FF90]
+    ret  
+
+SECTION "ROM0_0615", ROM0[$0615]
+routine_0615::
+    push bc
+    push hl
+    call routine_062E
+    ld a, [hl]
+    call test_bit
+    pop hl
+    pop bc
+    ret
+
+SECTION "ROM0_0621", ROM0[$0621]
+routine_0621::
+    push bc
+    push hl
+    call routine_062E
+    ld a, [hl]
+    call set_bit
+    ld [hl], a
+    pop hl
+    pop bc
+    ret
+
+SECTION "ROM0_062E", ROM0[$062E]
+routine_062E::
+    ld c, a
+    srl a
+    srl a
+    srl a
+    ld hl, $C306
+    rst rst_hl_plus_a
+    ld a, c
+    and a, $07
+    ld c, a
+    ret
+
+SECTION "ROM0_063E", ROM0[$063E]
+routine_063E::
+    push hl
+    call routine_0661
+    jr c, $0646
+    swap a
+.skip
+    and a,$0F
+    pop hl
+    ret
+
+SECTION "ROM0_064A", ROM0[$064A]
+routine_064A::
+    push de
+    push hl
+    and a, $0F
+    ld d, a
+    call routine_0661
+    jr c, .else
+    and a, $0F
+    swap d
+    jr .done
+.else
+    and a, $F0
+.done
+    or d
+    ld [hl],a
+    pop hl
+    pop de
+    ret
+
+SECTION "ROM0_0661", ROM0[$0661]
+routine_0661::
+    ld a, e
+    and a, $1F
+    srl a
+    push af
+    ld hl, $C2F6
+    rst rst_hl_plus_a
+    pop af
+    ld a, [hl]
+    ret
+
+SECTION "ROM0_066E", ROM0[$066E]
+routine_066E::
+    push bc
+    push hl
+    call routine_0679
+    call test_bit
+    pop hl
+    pop bc
+    ret  
+
+SECTION "ROM0_0679", ROM0[$0679]
+routine_0679::
+    ld a, d
+    add a
+    ld hl, $C31D
+    rst rst_hl_plus_a
+    bit 3, e
+    jr z, .skip
+    inc hl
+.skip
+    ld a, e
+    and a, $07
+    ld c, a
+    ld a, [hl]
+    ret
 
 ; Arguments:
 ; [map_oam_table_address] = map oam source
@@ -565,6 +973,304 @@ prepare_map_oam::
     pop de
     pop bc
     ret  
+
+SECTION "ROM0_06F4", ROM0[$06F4]
+routine_06F4::
+    xor a
+    ldh[$FF8B],a
+    ld [$C764],a
+    ldh [$FF96],a
+    ldh [$FFA5],a
+    jp routine_0550
+    push de
+    call $07B5
+    ld a,[de]
+    inc de
+    call routine_07BE
+    pop de
+    ret  
+
+SECTION "ROM0_070C", ROM0[$070C]
+routine_070C::
+    xor a
+    ld [$C77B], a
+    rst $30
+    cp a, $9E
+    jr nc, routine_073B
+
+    cp a, $4E
+    jr nc, .else
+    ld hl, $13BE
+    add a
+    rst rst_hl_plus_a
+    ld e, [hl]
+    inc hl
+    ld d, [hl]
+    push de
+    pop hl
+    jp hl
+.else
+    ld hl, $6560
+    sub a, $4E
+    add a
+    rst rst_hl_plus_a
+    ld a, $0F
+    call banked_load
+    inc hl
+    push hl
+    call routine_073B
+    pop hl
+    ld a, $0F
+    call banked_load
+    ; fallthrough
+
+SECTION "ROM0_073B", ROM0[$073B]
+routine_073B::
+    call routine_075E
+    call routine_0755
+    call routine_07AA
+    ldh a, [$FFA0]
+    and a
+    ret z
+    cp a, $04
+    ret z
+    ld hl, $C77F
+    dec [hl]
+    cp a, $05
+    ret z
+    jp routine_08D6
+
+SECTION "ROM0_0755", ROM0[$0755]
+routine_0755::
+    ld hl, $C7A1
+    inc [hl]
+    call $079F
+    ldi [hl], a
+    ret
+
+SECTION "ROM0_075E", ROM0[$075E]
+routine_075E::
+    push af
+    ldh a, [$FFA0]
+    and a
+    jr z, .skip3
+    cp a, $04
+    jr z, .skip3
+    cp a, $05
+    jr z, .skip
+    call $0E30
+.skip
+    push bc
+    push de
+    push hl
+    ld hl, $C77F
+    ld a, [hl]
+    and a
+    jr nz, .skip2
+    dec hl
+    ldi a, [hl]
+    ld [hl], a
+    call $0DED
+.skip2
+    pop hl
+    pop de
+    pop bc
+    ldh a,[$FFA0]
+    cp a,$05
+    jr z, .skip3
+    call $068F
+.skip3
+    pop af
+    ret
+
+SECTION "ROM0_078D", ROM0[$078D]
+routine_078D::
+    ld a, [$C783]
+    ld l, a
+    ld a, [$C784]
+    ld h, a
+    ret
+
+SECTION "ROM0_0796", ROM0[$0796]
+routine_0796::
+    ld a, l
+    ld [$C783], a
+    ld a, h
+    ld [$C784], a
+    ret
+
+SECTION "ROM0_079F", ROM0[$079F]
+routine_079F::
+    push af
+    ld a, [$C781]
+    ld l, a
+    ld a, [$C782]
+    ld h, a
+    pop af
+    ret  
+
+SECTION "ROM0_07AA", ROM0[$07AA]
+routine_07AA::
+    push af
+    ld a, l
+    ld [$C781], a
+    ld a, h
+    ld [$C782], a
+    pop af
+    ret
+
+SECTION "ROM0_07B5", ROM0[$07B5]
+routine_07B5::
+    push hl
+    ld hl, $FFA2
+    ld e, [hl]
+    inc hl
+    ld d, [hl]
+    pop hl
+    ret  
+
+SECTION "ROM0_07BE", ROM0[$07BE]
+routine_07BE::
+    push hl
+    ld hl, $FFA2
+    ld [hl], e
+    inc hl
+    ld [hl], d
+    pop hl
+    ret
+
+SECTION "ROM0_07C7", ROM0[$07C7]
+routine_07C7::
+    ld l, e
+    ldh a, [$FFA0]
+    and a
+    jr z, .then
+    dec a
+    jr z, .then
+    dec a
+    jr z, .else
+    dec a
+    jr nz, .then
+    ld a,[$D90C]
+    ld l,a
+.then
+    ld h, $00
+    jr .done
+.else
+    ld h, d
+    dec h
+.done
+    add hl, hl
+    add hl, bc
+    ldi a, [hl]
+    ldh [$FFA2], a
+    ld a, [hl]
+    ldh [$FFA3], a
+    ret  
+
+SECTION "ROM0_07E9", ROM0[$07E9]
+routine_07E9::
+    push af
+    ldh a, [$FFA0]
+    and a
+    jr z, .then
+    dec a
+    jr z, .then
+    dec a
+    jr z, .else
+.then
+    ld a, $0B
+    jr .done
+.else
+    ld a, $0A
+.done
+    rst $28
+    ldh [$FFA1],a
+    pop af
+    ret  
+
+SECTION "ROM0_0800", ROM0[$0800]
+routine_0800::
+    push af
+    push bc
+    push de
+    push hl
+    ldh a, [$FF8B]
+    and a
+    ld a, $03
+    ld bc, $6B80
+    jr nz, routine_084E
+    dec a
+    ld bc, $4000
+    inc d
+    dec d
+    jr nz, routine_084E
+    ld bc, $4000
+    ld a, e
+    cp a, $70
+    ld a, $01
+    jr nz, routine_084E
+    ld a, $04
+    ldh [$FFA0], a
+    ld a, $14
+    ld [$C77E], a
+    call routine_07E9
+    call routine_07C7
+    ld hl, $C800
+    ld bc, $0300
+    ld a, $FF
+    call memset16
+    ld hl, $C814
+    call routine_0796
+    call routine_07AA
+.loop
+    call routine_070C
+    jr .loop
+    ldh a,[$FFA1]
+    rst $28
+    jp $000B
+
+SECTION "ROM0_084E", ROM0[$084E]
+routine_084E::
+    push af
+    push bc
+    push de
+    ld hl, $C779
+    ld e, [hl]
+    inc hl
+    ld d, [hl]
+    push hl
+    ld hl, $FFA0
+    ld b, $04
+    call memcpy8
+    pop hl
+    ld [hl], d
+    dec hl
+    ld [hl], e
+    ld hl, $C77D
+    ld a, [hl]
+    ld [$C77C] ,a
+    inc [hl]
+    pop de
+    pop bc
+    pop af
+    ldh [$FFA0], a
+    call routine_07E9
+    call routine_07C7
+    ld a, $20
+    ld [$C77E], a
+.loop
+    call routine_070C
+    jr .loop
+
+; ...
+
+; ...
+
+SECTION "ROM0_08D6", ROM0[$08D6]
+routine_08D6::
+
+; ... 
 
 SECTION "ROM0_0F86", ROM0[$0F86]
 character_creator_event::
