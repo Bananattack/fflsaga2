@@ -326,7 +326,7 @@ memcpy16::
 ; b is cleared.
 ; hl is advanced ahead by b bytes.
 SECTION "ROM0_0094", ROM0[$0094]
-vram_memset8::
+vramset8::
     call vram_transfer_start
     call memset8
     jr done_vram_mem_transfer
@@ -342,7 +342,7 @@ vram_memset8::
 ; b is cleared.
 ; hl is advanced ahead by b bytes.
 SECTION "ROM0_009C", ROM0[$009C]
-vram_memset16::
+vramset16::
     call vram_transfer_start
     call memset16
     jr done_vram_mem_transfer
@@ -360,7 +360,7 @@ vram_memset16::
 ; hl is advanced ahead by b bytes.
 ; de is advanced ahead by b bytes.
 SECTION "ROM0_00A4", ROM0[$00A4]
-vram_memcpy8::    
+vramcpy8::    
     call vram_transfer_start
     call memcpy8
     jr done_vram_mem_transfer
@@ -378,7 +378,7 @@ vram_memcpy8::
 ; hl is advanced ahead by bc bytes.
 ; de is advanced ahead by bc bytes.
 SECTION "ROM0_00AC", ROM0[$00AC]
-vram_memcpy16::    
+vramcpy16::    
     call vram_transfer_start
     call memcpy16
     ; fallthrough
@@ -444,10 +444,10 @@ banked_memcpy16::
 ; hl is advanced ahead by b bytes.
 ; de is advanced ahead by b bytes.
 SECTION "ROM0_00C3", ROM0[$00C3]
-banked_vram_memcpy8::
+banked_vramcpy8::
     rst rst_bank_switch
     push af
-    call vram_memcpy8
+    call vramcpy8
     jr done_banked_memcpy
 
 ; Banked VRAM copy. Switches ROM to bank a,
@@ -465,10 +465,10 @@ banked_vram_memcpy8::
 ; hl is advanced ahead by bc bytes.
 ; de is advanced ahead by bc bytes.
 SECTION "ROM0_00CA", ROM0[$00CA]
-banked_vram_memcpy16::
+banked_vramcpy16::
     rst rst_bank_switch
     push af
-    call vram_memcpy16
+    call vramcpy16
     ;fallthrough
 
 SECTION "ROM0_00CF", ROM0[$00CF]
