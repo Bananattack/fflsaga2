@@ -67,6 +67,11 @@ map_tileset_index:: DS 1
 SECTION "WRAM0_C473", WRAM0[$C473]
 stat_dispatcher_previous:: DS 3
 
+; The previously loaded value of the stat dipatcher code.
+; Backed up here during certain temporary operations that override the stat dispatcher.
+SECTION "WRAM0_C7D3", WRAM0[$C7D3]
+vram_transfer_stat_dispatcher_previous:: DS 3
+
 ; The animation timer used to cycle which OAM buffer is used for drawing.
 SECTION "WRAM0_C4FF", WRAM0[$C4FF]
 map_oam_animation_timer:: DS 1

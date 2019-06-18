@@ -82,7 +82,7 @@ rst_call_800_::
 SECTION "ROM0_28", ROM0[$28]
 rst_bank_switch_::
     di
-    call $04B1
+    call bank_switch
     reti
     nop
     nop
@@ -276,8 +276,8 @@ memset16::
 ;
 ; Result:
 ; b is cleared.
-; hl is advanced ahead by bc bytes.
-; de is advanced ahead by bc bytes.
+; hl is advanced ahead by b bytes.
+; de is advanced ahead by b bytes.
 SECTION "ROM0_0080", ROM0[$0080]
 memcpy8::
     push af
@@ -315,56 +315,164 @@ memcpy16::
     pop af
     ret
 
-; Purpose unknown.
+; Sets b bytes at VRAM location [hl] with the value a.
+;
+; Arguments:
+; hl = dest
+; a = value
+; b = count (0 = 256 bytes)
+;
+; Result:
+; b is cleared.
+; hl is advanced ahead by b bytes.
 SECTION "ROM0_0094", ROM0[$0094]
-routine_0094::
-    call $1674
+vram_memset8::
+    call vram_transfer_start
     call memset8
-    jr label_00B2
-SECTION "ROM0_009C", ROM0[$009C]
-routine_009C::
-    call $1674
-    call memset16
-    jr label_00B2
-SECTION "ROM0_00A4", ROM0[$00A4]
-routine_00A4::    
-    call $1674
-    call memcpy8
-    jr label_00B2
-SECTION "ROM0_00AC", ROM0[$00AC]
-routine_00AC::    
-    call $1674
-    call memcpy16
-SECTION "ROM0_00B2", ROM0[$00B2]
-label_00B2::
-    jp $1691
+    jr done_vram_mem_transfer
 
-; Purpose unknown.
+; Sets bc bytes at VRAM location [hl] with the value a.
+;
+; Arguments:
+; hl = dest
+; a = value
+; bc = count (0 = 65536 bytes)
+;
+; Result:
+; b is cleared.
+; hl is advanced ahead by b bytes.
+SECTION "ROM0_009C", ROM0[$009C]
+vram_memset16::
+    call vram_transfer_start
+    call memset16
+    jr done_vram_mem_transfer
+
+; VRAM copy.
+; Copies b bytes from [hl] to VRAM location [de].
+;
+; Arguments:
+; de = dest
+; hl = source address
+; b = count (0 = 256 bytes)
+;
+; Result:
+; b is cleared.
+; hl is advanced ahead by b bytes.
+; de is advanced ahead by b bytes.
+SECTION "ROM0_00A4", ROM0[$00A4]
+vram_memcpy8::    
+    call vram_transfer_start
+    call memcpy8
+    jr done_vram_mem_transfer
+
+; VRAM copy.
+; Copies bc bytes from [hl] to VRAM location [de].
+;
+; Arguments:
+; de = dest
+; hl = source address
+; bc = count (0 = 65536 bytes)
+;
+; Result:
+; bc is cleared.
+; hl is advanced ahead by bc bytes.
+; de is advanced ahead by bc bytes.
+SECTION "ROM0_00AC", ROM0[$00AC]
+vram_memcpy16::    
+    call vram_transfer_start
+    call memcpy16
+    ; fallthrough
+
+SECTION "ROM0_00B2", ROM0[$00B2]
+done_vram_mem_transfer::
+    jp vram_transfer_end
+
+; Banked memcpy. Switches ROM to bank a,
+; copies b bytes from [hl] to [de],
+; then restores ROM to its previous bank.
+;
+; Arguments:
+; de = dest
+; a = source bank
+; hl = source address
+; b = count (0 = 256 bytes)
+;
+; Result:
+; b is cleared.
+; hl is advanced ahead by b bytes.
+; de is advanced ahead by b bytes.
 SECTION "ROM0_00B5", ROM0[$00B5]
-routine_00B5::
+banked_memcpy8::
     rst rst_bank_switch
     push af
     call memcpy8
-    jr label_00CF
+    jr done_banked_memcpy
+
+; Banked memcpy. Switches ROM to bank a,
+; copies bc bytes from [hl] to [de],
+; then restores ROM to its previous bank.
+;
+; Arguments:
+; de = dest
+; a = source bank
+; hl = source address
+; bc = count (0 = 65536 bytes)
+;
+; Result:
+; bc is cleared.
+; hl is advanced ahead by bc bytes.
+; de is advanced ahead by bc bytes.
 SECTION "ROM0_00BC", ROM0[$00BC]
-routine_00BC::
+banked_memcpy16::
     rst rst_bank_switch
     push af
     call memcpy16
-    jr label_00CF
+    jr done_banked_memcpy
+
+; Banked VRAM copy. Switches ROM to bank a,
+; copies b bytes from [hl] to VRAM location [de],
+; then restores ROM to its previous bank.
+;
+; Arguments:
+; de = dest
+; a = source bank
+; hl = source address
+; b = count (0 = 256 bytes)
+;
+; Result:
+; b is cleared.
+; hl is advanced ahead by b bytes.
+; de is advanced ahead by b bytes.
 SECTION "ROM0_00C3", ROM0[$00C3]
-routine_00C3::
+banked_vram_memcpy8::
     rst rst_bank_switch
     push af
-    call routine_00A4
-    jr label_00CF
+    call vram_memcpy8
+    jr done_banked_memcpy
+
+; Banked VRAM copy. Switches ROM to bank a,
+; copies bc bytes from [hl] to VRAM location [de],
+; then restores ROM to its previous bank.
+;
+; Arguments:
+; de = dest
+; a = source bank
+; hl = source address
+; bc = count (0 = 65536 bytes)
+;
+; Result:
+; bc is cleared.
+; hl is advanced ahead by bc bytes.
+; de is advanced ahead by bc bytes.
 SECTION "ROM0_00CA", ROM0[$00CA]
-routine_00CA::
+banked_vram_memcpy16::
     rst rst_bank_switch
     push af
-    call routine_00AC
+    call vram_memcpy16
+    ;fallthrough
+
 SECTION "ROM0_00CF", ROM0[$00CF]
-label_00CF::
+done_banked_memcpy::
     pop af
     rst rst_bank_switch
     ret 

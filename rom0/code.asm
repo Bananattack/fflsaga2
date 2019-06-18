@@ -45,13 +45,200 @@ SECTION "ROM0_0F86", ROM0[$0F86]
 character_creator_event::
 ; ...
 
+; Saves old stat handler to [$C7D3], and sets to $16A8
+SECTION "ROM0_1674", ROM0[$1674]
+vram_transfer_start::
+    rst rst_wait_vblank
+    di   
+    push af
+    push de
+    push hl
+    ld hl, stat_dispatcher
+    ld de, vram_transfer_stat_dispatcher_previous
+    ld a, [hl]
+    ld [de], a
+    inc de
+    ld a, $C3
+    ldi [hl], a
+    ld a, [hl]
+    ld [de], a
+    inc de
+    ld a, vram_transfer_stat_handler & $FF
+    ldi [hl], a
+    ld a, [hl]
+    ld [de], a
+    ld a, vram_transfer_stat_handler >> 8
+    jr done_set_C7D3_stat_handler
+
+; Restores old stat handler from [$C7D3]
+SECTION "ROM0_1691", ROM0[$1691]
+vram_transfer_end::
+    rst rst_wait_vblank
+    di   
+    push af
+    push de
+    push hl
+    ld hl, stat_dispatcher
+    ld de, vram_transfer_stat_dispatcher_previous
+    ld a, [de]
+    inc de
+    ldi [hl], a
+    ld a, [de]
+    inc de
+    ldi [hl], a
+    ld a, [de]
+    ; fallthrough
+
+SECTION "ROM0_16A3", ROM0[$16A3]
+done_set_C7D3_stat_handler::
+    ld [hl], a
+    pop hl
+    pop de
+    pop af
+    reti 
+
+SECTION "ROM0_16A8", ROM0[$16A8]
+vram_transfer_stat_handler::
+    push af
+    ldh a, [$FF44]
+    and a
+    call z, vram_transfer_new_frame_handler
+    inc a
+    ldh [$FF45], a
+    ldh a, [$FF41]
+    ldh [$FF41], a
+.wait_hblank
+    ldh a, [$FF41]
+    and a, $03
+    jr nz, .wait_hblank
+    pop af
+    reti
+
+SECTION "ROM0_16BE", ROM0[$16BE]
+vram_transfer_new_frame_handler::
+    call stat_handler_common
+    call wait_lcd_busy
+.wait_hblank
+    ldh a, [$FF41]
+    and a, $03
+    jr nz, .wait_hblank
+    call wait_lcd_busy
+    ldh a, [$FF44]
+    ret 
+
+; Waits until the stat register is in mode 3 (busy)
+SECTION "ROM0_16D0", ROM0[$16D0]
+wait_lcd_busy:
+.loop
+    ldh a, [$FF41]
+    and a, $03
+    cp a, $03
+    jr nz, .loop
+    ret  
+
 SECTION "ROM0_16D9", ROM0[$16D9]
 default_stat_handler::
-; ...
+    call stat_handler_common
+    push af
+    jr done_irq_handler
 
 SECTION "ROM0_16DF", ROM0[$16DF]
 default_vblank_handler::
+    push af
+    ldh a, [$FFA5]
+    and a
+    jr z, done_irq_handler
+
+    ld a, $01
+    ld [$2100], a
+    call $502D
+
+    ldh a, [current_rom_bank]
+    ld [$2100], a
+    ; fall through
+
+SECTION "ROM0_16F2", ROM0[$16F2]
+done_irq_handler::
+    xor a
+    ldh [$FF45], a
+    ldh [$FF0F], a
+    pop af
+    reti 
+
+SECTION "ROM0_16F9", ROM0[$16F9]
+stat_handler_common:
+    push af
+    push bc
+    push de
+    push hl
+    ld hl, $FF9C
+    ld a, [hl]
+    and a
+    jr nz, .done
+    inc [hl]
+
+    ld a, $0E
+    call bank_switch
+    push af
+    call $4000
+    ldh a, [$FFA5]
+    and a
+    jr z, .skip
+    ld a, $01
+    call bank_switch
+    call $5033
+.skip
+    pop af
+    call bank_switch
+.shift_joypad_buffer
+    ld hl, $C770
+    ld de, $C771
+    ld b, $03
+    push hl
+    call memcpy8
+    pop hl
+.read_joypad_buttons
+    ld c, $00
+    ld a, $20
+    ld [$ff00+c], a
+    call poll_joypad_short
+    swap a
+.read_joypad_directions
+    ld b, a
+    ld a, $10
+    ld [$ff00+c], a
+    call poll_joypad_long
+SECTION "ROM0_173D", ROM0[$173D]
 ; ...
+SECTION "ROM0_1751", ROM0[$1751]
+.handle_reset_combo
+; ...
+SECTION "ROM0_175C", ROM0[$175C]
+    ld hl, $FF9C
+    dec [hl]
+.done
+    jp pop_hl_de_bc_af
+
+; Repeatedly polls the joypad port.
+; Discards the first few reads so that the result has time to stabilize.
+;
+; Arguments:
+; c = joypad register address ($00)
+;
+; Results:
+; a = result of reading the joypad port.
+SECTION "ROM0_1763", ROM0[$1763]
+poll_joypad_long::
+    ld a, [$ff00+c]
+    ld a, [$ff00+c]
+    ld a, [$ff00+c]
+    ld a, [$ff00+c]
+    ; fallthrough
+poll_joypad_short::
+    ld a, [$ff00+c]
+    ld a, [$ff00+c]
+    or a, $F0
+    ret
 
 SECTION "ROM0_1997", ROM0[$1997]
 load_game::
