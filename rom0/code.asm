@@ -977,14 +977,17 @@ prepare_map_oam::
 SECTION "ROM0_06F4", ROM0[$06F4]
 routine_06F4::
     xor a
-    ldh[$FF8B],a
+    ldh [$FF8B],a
     ld [$C764],a
     ldh [$FF96],a
     ldh [$FFA5],a
     jp routine_0550
+
+SECTION "ROM0_0701", ROM0[$0701]
+routine_0701::   
     push de
-    call $07B5
-    ld a,[de]
+    call routine_07B5
+    ld a, [de]
     inc de
     call routine_07BE
     pop de
@@ -1044,7 +1047,7 @@ SECTION "ROM0_0755", ROM0[$0755]
 routine_0755::
     ld hl, $C7A1
     inc [hl]
-    call $079F
+    call routine_079F
     ldi [hl], a
     ret
 
@@ -1078,7 +1081,7 @@ routine_075E::
     ldh a,[$FFA0]
     cp a,$05
     jr z, .skip3
-    call $068F
+    call routine_068F
 .skip3
     pop af
     ret

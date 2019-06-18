@@ -71,7 +71,7 @@ rst_oam_dma_transfer_::
 ; Calls a routine at hex address $800. Purpose unknown.
 SECTION "ROM0_20", ROM0[$20]
 rst_call_800_::
-    jp $0800
+    jp routine_0800
     nop
     nop
     nop
@@ -91,7 +91,7 @@ rst_bank_switch_::
 ; Calls a routine at hex address $701. Purpose unknown.
 SECTION "ROM0_30", ROM0[$30]
 rst_call_701_::
-    jp $0701
+    jp routine_0701
     nop
     nop
     nop
