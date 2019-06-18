@@ -45,7 +45,9 @@ SECTION "ROM0_0F86", ROM0[$0F86]
 character_creator_event::
 ; ...
 
-; Saves old stat handler to [$C7D3], and sets to $16A8
+; Result:
+; - [vram_transfer_stat_dispatcher_old] is set to the previous stat handler
+; - [stat_dispatcher] is set to the new handler
 SECTION "ROM0_1674", ROM0[$1674]
 vram_transfer_start::
     rst rst_wait_vblank
@@ -54,7 +56,7 @@ vram_transfer_start::
     push de
     push hl
     ld hl, stat_dispatcher
-    ld de, vram_transfer_stat_dispatcher_previous
+    ld de, vram_transfer_stat_dispatcher_old
     ld a, [hl]
     ld [de], a
     inc de
@@ -68,9 +70,10 @@ vram_transfer_start::
     ld a, [hl]
     ld [de], a
     ld a, vram_transfer_stat_handler >> 8
-    jr done_set_C7D3_stat_handler
+    jr done_vram_transfer_stat_dispatcher_change
 
-; Restores old stat handler from [$C7D3]
+; Result:
+; - [stat_dispatcher] is set to [vram_transfer_stat_dispatcher_old]
 SECTION "ROM0_1691", ROM0[$1691]
 vram_transfer_end::
     rst rst_wait_vblank
@@ -79,7 +82,7 @@ vram_transfer_end::
     push de
     push hl
     ld hl, stat_dispatcher
-    ld de, vram_transfer_stat_dispatcher_previous
+    ld de, vram_transfer_stat_dispatcher_old
     ld a, [de]
     inc de
     ldi [hl], a
@@ -90,7 +93,7 @@ vram_transfer_end::
     ; fallthrough
 
 SECTION "ROM0_16A3", ROM0[$16A3]
-done_set_C7D3_stat_handler::
+done_vram_transfer_stat_dispatcher_change::
     ld [hl], a
     pop hl
     pop de
@@ -369,7 +372,7 @@ cross_wipe_in::
 ; - bc = new handler
 ;
 ; Result:
-; - [stat_dispatcher_previous] is set to the previous stat handler
+; - [stat_dispatcher_old] is set to the previous stat handler
 ; - [stat_dispatcher] is set to the new handler
 SECTION "ROM0_2E9C", ROM0[$2E9C]
 set_stat_handler::
@@ -386,7 +389,7 @@ set_default_stat_handler::
 ; ...
 
 ; Result:
-; - [stat_dispatcher] is set to old handler in [stat_dispatcher_previous]
+; - [stat_dispatcher] is set to [stat_dispatcher_old]
 SECTION "ROM0_2EEC", ROM0[$2EEC]
 restore_stat_handler::
 ; ...
