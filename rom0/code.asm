@@ -396,7 +396,7 @@ joy_update::
 SECTION "ROM0_0494", ROM0[$0494]
 routine_0494::
     call joy_update
-    call routine_068F
+    call transfer_current_oam
     ldh a, [joy_pressed_mask]
     ret
 
@@ -412,10 +412,10 @@ routine_049D::
     ret
 
 SECTION "ROM0_04A6", ROM0[$04A6]
-routine_04A6::
+wait_button_release::
     push af
 .loop
-    call routine_068F
+    call transfer_current_oam
     ldh a, [joy_held_mask]
     and a
     jr nz, .loop
@@ -883,7 +883,7 @@ transfer_map_oam::
     ret
 
 SECTION "ROM0_068F", ROM0[$068F]
-routine_068F::
+transfer_current_oam::
     push af
     push bc
     rst rst_wait_vblank
@@ -1086,7 +1086,7 @@ routine_075E::
     ldh a, [$FFA0]
     cp a, $05
     jr z, .skip3
-    call routine_068F
+    call transfer_current_oam
 .skip3
     pop af
     ret
@@ -1358,7 +1358,7 @@ routine_08D6::
     jr z, .skip3
     inc b
 .skip3
-    call routine_068F
+    call transfer_current_oam
     dec b
     jr nz, .loop
     ret
@@ -1689,7 +1689,7 @@ routine_0AC2::
     ld hl, $D000
 .skip
     call routine_0AF3
-    call routine_068F
+    call transfer_current_oam
     ld a, [$C7A5]
     ldh [$FF4A], a
     ld a, $07
@@ -1753,7 +1753,7 @@ routine_0B0F::
     and a
     jr z, .skip
     call routine_0CA9
-    call routine_04A6
+    call wait_button_release
     call routine_0E5C
 .skip
     pop hl
@@ -1769,20 +1769,27 @@ routine_0B32::
     jr z, routine_0B43
     inc a
     jr routine_0B43
+
+SECTION "ROM0_0B3C", ROM0[$0B3C]
+routine_0B3C::    
     call routine_0B46
     and a
     jr z, routine_0B43
     dec a
     ; fallthrough
-SECTION "ROM0_0B32", ROM0[$0B32]
+
+SECTION "ROM0_0B43", ROM0[$0B43]
 routine_0B43::
     jp routine_064A
 
-SECTION "ROM0_0B32", ROM0[$0B32]
+SECTION "ROM0_0B46", ROM0[$0B46]
 routine_0B46::
     rst rst_call_701
     ld e, a
     jp routine_063E
+
+SECTION "ROM0_0B4B", ROM0[$0B4B]
+routine_0B4B::    
     rst rst_call_701
     ld e, a
     rst rst_call_701
@@ -1793,11 +1800,17 @@ routine_0B50::
     call routine_0B66
     call routine_0679
     call set_bit
-    jr .done
+    jr routine_0B64
+
+SECTION "ROM0_0B5B", ROM0[$0B5B]
+routine_0B5B::
     call routine_0B66
     call routine_0679
     call reset_bit
-.done
+    ; fallthrough
+
+SECTION "ROM0_0B64", ROM0[$0B64]
+routine_0B64::
     ld [hl], a
     ret  
 
@@ -1857,6 +1870,9 @@ routine_0B9B::
     cp a, $04
     ret z
     jr routine_0C05
+
+SECTION "ROM0_0BB6", ROM0[$0BB6]
+routine_0BB6::
     rst rst_call_701
     ld e, a
     rst rst_call_701
@@ -2043,23 +2059,29 @@ routine_0C9E::
     DW $502A
     DW $C901
 
+SECTION "ROM0_0CA9", ROM0[$0CA9]
 routine_0CA9::
-    call routine_04A6
+    call wait_button_release
 .loop
-    call routine_068F
+    call transfer_current_oam
     call joy_update
     ldh a, [$FF8A]
     and a
     jr z, .loop
-
-    jp routine_04A6
+    jp wait_button_release
+    
+SECTION "ROM0_0CBA", ROM0[$0CBA]
+routine_0CBA::    
     call $1909
-    jp routine_068F
+    jp transfer_current_oam
+
+SECTION "ROM0_0CC0", ROM0[$0CC0]
+routine_0CC0::
     rst rst_call_701
     ld b, a
 .loop2
-    call routine_068F
-    call routine_068F
+    call transfer_current_oam
+    call transfer_current_oam
     dec b
     jr nz, .loop2
     ret
@@ -2112,6 +2134,7 @@ routine_0CEF::
     ret  
 
 SECTION "ROM0_0D05", ROM0[$0D05]
+routine_0D05::
     rst rst_call_701
     cp a, $05
     jr c, .labelD1B
@@ -2261,7 +2284,7 @@ routine_0DD0::
 
 SECTION "ROM0_0DDE", ROM0[$0DDE]
 routine_0DDE::
-    rst $30
+    rst rst_call_701
     ld c, a
     ld hl, $C7A1
     add [hl]
@@ -2276,9 +2299,9 @@ routine_0DEA::
 
 SECTION "ROM0_0DED", ROM0[$0DED]
 routine_0DED::
-    call .subroutine
+    call routine_0DF0
     ; fallthrough
-.subroutine
+routine_0DF0::
     ld hl, $C780
     ldd a, [hl]
     ld [hl], a
@@ -2302,7 +2325,7 @@ routine_0DED::
 .done
     call routine_078D
     ld a,[$C77E]
-    rst $00
+    rst rst_hl_plus_a
     call routine_07AA
     call routine_0796
     ld hl, $C7A3
@@ -2335,7 +2358,7 @@ routine_0E30::
     call memclear8
     call routine_0546
 .skip
-    call routine_068F
+    call transfer_current_oam
     call routine_0E72
 .done
     jp pop_hl_de_bc_af
@@ -2349,7 +2372,7 @@ routine_0E5C::
     xor a
     ld [hl],a
     ld [$C7DE],a
-    rst $10
+    rst rst_wait_vblank
     call transfer_map_oam
     ldh a,[$FF40]
     and a,$C3
@@ -2421,12 +2444,142 @@ routine_0EBB::
     rst rst_bank_switch
     ret
 
+SECTION "ROM0_0EC5", ROM0[$0EC5]
+routine_0EC5::
+    call $0E5C
+    ldh a,[$FF88]
+    push af
+    rst rst_call_701
+    ld [$C7F3], a
+    cp a, $FF
+    jr nz, $0ED8
+    call $191E
+    jr .skip
+    ld c, a
+    call $190F
+.skip
+    pop af
+    rst $28
+.loop
+    xor a
+    ld [$C764],a
+    ld [$C763],a
+    ld [$C7DE],a
+    cpl  
+    ldh [$FF8B],a
+    call $14E3
+    call enter_menu_from_map
+    DW $4000
+    DW $CD0D
+    inc e
+    dec d
+    ld a, [$C763]
+    and a
+    ret z
+    ld e, $0B
+    call routine_063E
+    and a
+    jp nz, reset
+    ld de, $0003
+    rst rst_call_800
+    call $1477
+    and a
+    jp nz, reset
+    ld hl, $C2A1
+    ld a, [hl]
+    inc a
+    jr z, .loop
+    ld [hl], a
+    jr .loop   
 
 ; ... 
 
 SECTION "ROM0_0F86", ROM0[$0F86]
 character_creator_event::
 ; ...
+
+SECTION "ROM0_13BE", ROM0[$13BE]
+jump_table_13BE::
+    DW routine_0B0F
+    DW routine_0DA6
+    DW routine_0DB0
+    DW routine_0DBA
+    DW routine_0DC7
+    DW routine_0DF0
+    DW routine_0DED
+    DW routine_0CCC
+    DW routine_0D05
+    DW routine_0EC5
+    DW routine_0EB8
+    DW routine_0CA9
+    DW routine_0E30
+    DW routine_0E5C
+    DW routine_0B0F
+    DW routine_0E72
+    DW routine_0CBA
+    DW routine_0CC0
+    DW routine_0B32
+    DW routine_0B3C
+    DW routine_0B4B
+    DW routine_0BB6
+    DW routine_0C00
+    DW routine_0B72
+    DW routine_0B50
+    DW $1490
+    DW routine_0BCE
+    DW routine_0BD8
+    DW $1086
+    DW $121E
+    DW $130A
+    DW $0FF2
+    DW $0FCC
+    DW $1032
+    DW $10BB
+    DW $124B
+    DW $11CB
+    DW $11FE
+    DW $12E1
+    DW $12C2
+    DW $12C7
+    DW $12CC
+    DW $12D1
+    DW $124B
+    DW $12DC
+    DW $0FD4
+    DW routine_0CEC
+    DW routine_0EB3
+    DW $1378
+    DW $0B31
+    DW $0F9D
+    DW $0F6A
+    DW $0F86
+    DW $12F9
+    DW routine_0DDE
+    DW routine_0BE4
+    DW $0F2F
+    DW routine_0CD0
+    DW $138A
+    DW $11D8
+    DW routine_0EAE
+    DW routine_0EA9
+    DW $0F58
+    DW $0F5F
+    DW routine_0B5B
+    DW $1153
+    DW $1184
+    DW routine_0B9B
+    DW routine_0BEF
+    DW routine_0BF7
+    DW $0F1A
+    DW $0FAE
+    DW routine_0C9E
+    DW routine_0C27
+    DW $146C
+    DW routine_0C21
+    DW routine_0C1B
+    DW routine_0C0F
+SECTION "ROM0_145A", ROM0[$145A]
+
 
 ; Result:
 ; - [vram_transfer_stat_dispatcher_old] is set to the previous stat handler
