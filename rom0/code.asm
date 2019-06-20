@@ -13,8 +13,8 @@ routine_02F0::
     rr h
     jr nc, .skip
     add l
-.skip    
-    rra  
+.skip
+    rra
     rr c
     dec b
     jr nz, .loop
@@ -30,14 +30,14 @@ routine_0306::
     push af
     push bc
     ld a, l
-    cpl  
+    cpl
     ld c, a
     inc c
     xor a
     ld b, $08
 .loop
     sla h
-    rla  
+    rla
     add c
     jr c, .skip
     add l
@@ -48,11 +48,11 @@ routine_0306::
 
     ld l, a
     ld a, h
-    cpl  
+    cpl
     ld h, a
     pop bc
     pop af
-    ret  
+    ret
 
 SECTION "ROM0_0321", ROM0[$0321]
 routine_0321::
@@ -76,11 +76,11 @@ routine_0321::
     rr e
     pop bc
     pop af
-    ret  
+    ret
 
 SECTION "ROM0_033F", ROM0[$033F]
 routine_033F::
-    di   
+    di
     push af
     push bc
     ld c, l
@@ -89,10 +89,10 @@ routine_033F::
     push hl
     ld [ld_sp_ret_dispatcher + 1], sp
     ld a, e
-    cpl  
+    cpl
     ld l, a
     ld a, d
-    cpl  
+    cpl
     ld h, a
     inc hl
     ld sp, hl
@@ -115,15 +115,15 @@ routine_033F::
 .done
     push hl
     ld a, c
-    cpl  
+    cpl
     ld l, a
     ld a, b
-    cpl  
+    cpl
     ld h, a
     pop de
     pop bc
     pop af
-    reti 
+    reti
 
 SECTION "ROM0_0376", ROM0[$0376]
 routine_0376::
@@ -140,18 +140,18 @@ routine_0376::
     jr .done
 .else
     or l
-    scf  
+    scf
 .done
     pop de
     ldh a, [$FF90]
-    ret  
+    ret
 
 SECTION "ROM0_038A", ROM0[$038A]
 routine_038A::
     push hl
     call routine_0376
     pop hl
-    ret 
+    ret
 
 
 SECTION "ROM0_0390", ROM0[$0390]
@@ -174,30 +174,30 @@ routine_0390::
     ld [de], a
     pop hl
     pop de
-    ldh a,[$FF90]
+    ldh a, [$FF90]
     ret
 
 SECTION "ROM0_03A6", ROM0[$03A6]
 routine_03A6::
-    ldh [$FF90],a
+    ldh [$FF90], a
     push bc
     push de
     push hl
-    ld a,[de]
+    ld a, [de]
     sub [hl]
-    ld [de],a
-    ld c,a
+    ld [de], a
+    ld c, a
     inc de
     inc hl
-    ld a,[de]
+    ld a, [de]
     sbc [hl]
-    ld [de],a
-    ld b,a
+    ld [de], a
+    ld b, a
     inc de
     inc hl
-    ld a,[de]
+    ld a, [de]
     sbc [hl]
-    ld [de],a
+    ld [de], a
     jr label_03CD
 
 SECTION "ROM0_03BC", ROM0[$03BC]
@@ -260,14 +260,14 @@ routine_03DC::
     jr nc, .skip
     add h
 .skip
-    rra  
+    rra
     dec b
     jr nz, .loop
 
     rr l
     rr d
     rr e
-    ld c,l
+    ld c, l
     pop hl
     ld [hl], e
     inc hl
@@ -286,7 +286,7 @@ routine_040B::
     ld l, e
     ld h, d
     ld c, a
-    cpl  
+    cpl
     ld b, a
     inc b
     push hl
@@ -303,7 +303,7 @@ routine_040B::
     sla e
     rl d
     rl c
-    rla  
+    rla
     add b
     jr c, .skip
     add h
@@ -315,13 +315,13 @@ routine_040B::
     pop hl
     ld b, a
     ld a, e
-    cpl  
+    cpl
     ldi [hl], a
     ld a, d
-    cpl  
+    cpl
     ldi [hl], a
     ld a, c
-    cpl  
+    cpl
     ld [hl], a
     ld a, b
     pop hl
@@ -351,19 +351,19 @@ routine_043E::
     cp e
     jr z, .done
     sub e
-    ld l,a
+    ld l, a
     cp a, $FF
-    ld a,h
+    ld a, h
     jr z, .skip
     inc l
     call routine_0306
-    ld a,l
+    ld a, l
 .skip
     add e
 .done
     pop hl
     pop de
-    ret  
+    ret
 
 SECTION "ROM0_0469", ROM0[$0469]
 joy_update::
@@ -389,10 +389,10 @@ joy_update::
 .changed_buttons
     ld a, $1E
     ld [joy_repeat_delay], a
-    ld a,c
+    ld a, c
     ldh [joy_pressed_mask], a
     ld [joy_repeat_mask], a
-    ret  
+    ret
 
 SECTION "ROM0_0494", ROM0[$0494]
 routine_0494::
@@ -410,7 +410,7 @@ routine_049D::
     and a
     jr nz, .loop
     pop af
-    ret  
+    ret
 
 SECTION "ROM0_04A6", ROM0[$04A6]
 routine_04A6::
@@ -433,15 +433,15 @@ routine_04A6::
 SECTION "ROM0_04B1", ROM0[$04B1]
 bank_switch::
     push bc
-    ld   c, a
-    ldh  a, [current_rom_bank]
-    ld   b, a
-    ld   a, c
-    ldh  [current_rom_bank], a
-    ld   [$2100], a
-    ld   a, b
-    pop  bc
-    ret  
+    ld c, a
+    ldh a, [current_rom_bank]
+    ld b, a
+    ld a, c
+    ldh [current_rom_bank], a
+    ld [$2100], a
+    ld a, b
+    pop bc
+    ret
 
 SECTION "ROM0_04BF", ROM0[$04BF]
 enter_menu_from_map::
@@ -468,14 +468,14 @@ enter_menu_from_map::
     ld e, a
     ld hl, sp + 5
     ld a, [hl]
-    di   
+    di
     ld [hl], e
     ld [ld_a_jmp_dispatcher + 1], a
     pop de
     pop hl
     pop af
     dec sp
-    ei   
+    ei
     call ld_a_jmp_dispatcher
     push af
     push hl
@@ -494,19 +494,19 @@ disable_save_ram::
     xor a
     ld [$0000], a
     pop af
-    reti 
+    reti
 
 ; Enables save RAM access, and disables interrupts beforehand.
 SECTION "ROM0_04FB", ROM0[$04FB]
 enable_save_ram::
-    di   
+    di
     push af
     ld a, $0A
     ld [$0000], a
     pop af
-    ret  
+    ret
 
-; Arguments: 
+; Arguments:
 ; - a = operand
 ; - c = bit index (modulo 8)
 ;
@@ -522,7 +522,7 @@ test_bit::
     ld c, $47
     jr launch_bit_op_dispatcher
 
-; Arguments: 
+; Arguments:
 ; a = operand
 ; c = bit index (modulo 8)
 ;
@@ -537,7 +537,7 @@ set_bit::
     ld c, $C7
     jr launch_bit_op_dispatcher
 
-; Arguments: 
+; Arguments:
 ; a = operand
 ; c = bit index (modulo 8)
 ;
@@ -562,15 +562,15 @@ reset_bit::
 SECTION "ROM0_0517", ROM0[$0517]
 launch_bit_op_dispatcher::
     and a, $07
-    rlca 
-    rlca 
-    rlca 
+    rlca
+    rlca
+    rlca
     or c
     ld [bitwise_op_dispatcher + 1], a
     ld a, b
     call bitwise_op_dispatcher
     pop bc
-    ret 
+    ret
 
 ; Multiplies both d and e by 8, independently.
 SECTION "ROM0_0526", ROM0[$0526]
@@ -731,7 +731,7 @@ routine_05D9::
     rst rst_hl_plus_a
 .done
     pop bc
-    ret  
+    ret
 
 SECTION "ROM0_05EF", ROM0[$05EF]
 routine_05EF::
@@ -747,8 +747,8 @@ routine_05EF::
     rlca
     rlca
 .loop
-    rrca 
-    rrca 
+    rrca
+    rrca
     dec b
     jr nz, .loop
     and a, $03
@@ -758,14 +758,14 @@ routine_05EF::
 
 SECTION "ROM0_0608", ROM0[$0608]
 routine_0608::
-    ldh  [$FF90], a
+    ldh [$FF90], a
     push de
     ld e, $00
     call routine_063E
     and a
     pop de
     ldh a, [$FF90]
-    ret  
+    ret
 
 SECTION "ROM0_0615", ROM0[$0615]
 routine_0615::
@@ -810,7 +810,7 @@ routine_063E::
     jr c, $0646
     swap a
 .skip
-    and a,$0F
+    and a, $0F
     pop hl
     ret
 
@@ -829,7 +829,7 @@ routine_064A::
     and a, $F0
 .done
     or d
-    ld [hl],a
+    ld [hl], a
     pop hl
     pop de
     ret
@@ -854,7 +854,7 @@ routine_066E::
     call test_bit
     pop hl
     pop bc
-    ret  
+    ret
 
 SECTION "ROM0_0679", ROM0[$0679]
 routine_0679::
@@ -893,9 +893,9 @@ routine_068F::
     and a
     jr nz, .skip
     ldh a, [menu_mode]
-    rrca 
+    rrca
     jr c, .skip
-    rrca 
+    rrca
     jr c, .skip
     ld a, [map_oam_table_address]
     ld c, a
@@ -967,31 +967,31 @@ prepare_map_oam::
     dec b
     jr nz, .loop
     ld a, $CC
-    ld [map_oam_table_address],a
+    ld [map_oam_table_address], a
 .done
     pop hl
     pop de
     pop bc
-    ret  
+    ret
 
 SECTION "ROM0_06F4", ROM0[$06F4]
 routine_06F4::
     xor a
-    ldh [$FF8B],a
-    ld [$C764],a
-    ldh [$FF96],a
-    ldh [$FFA5],a
+    ldh [$FF8B], a
+    ld [$C764], a
+    ldh [$FF96], a
+    ldh [$FFA5], a
     jp routine_0550
 
 SECTION "ROM0_0701", ROM0[$0701]
-routine_0701::   
+routine_0701::
     push de
     call routine_07B5
     ld a, [de]
     inc de
     call routine_07BE
     pop de
-    ret  
+    ret
 
 SECTION "ROM0_070C", ROM0[$070C]
 routine_070C::
@@ -1078,8 +1078,8 @@ routine_075E::
     pop hl
     pop de
     pop bc
-    ldh a,[$FFA0]
-    cp a,$05
+    ldh a, [$FFA0]
+    cp a, $05
     jr z, .skip3
     call routine_068F
 .skip3
@@ -1110,7 +1110,7 @@ routine_079F::
     ld a, [$C782]
     ld h, a
     pop af
-    ret  
+    ret
 
 SECTION "ROM0_07AA", ROM0[$07AA]
 routine_07AA::
@@ -1130,7 +1130,7 @@ routine_07B5::
     inc hl
     ld d, [hl]
     pop hl
-    ret  
+    ret
 
 SECTION "ROM0_07BE", ROM0[$07BE]
 routine_07BE::
@@ -1154,8 +1154,8 @@ routine_07C7::
     jr z, .else
     dec a
     jr nz, .then
-    ld a,[$D90C]
-    ld l,a
+    ld a, [$D90C]
+    ld l, a
 .then
     ld h, $00
     jr .done
@@ -1169,7 +1169,7 @@ routine_07C7::
     ldh [$FFA2], a
     ld a, [hl]
     ldh [$FFA3], a
-    ret  
+    ret
 
 SECTION "ROM0_07E9", ROM0[$07E9]
 routine_07E9::
@@ -1188,9 +1188,9 @@ routine_07E9::
     ld a, $0A
 .done
     rst $28
-    ldh [$FFA1],a
+    ldh [$FFA1], a
     pop af
-    ret  
+    ret
 
 SECTION "ROM0_0800", ROM0[$0800]
 routine_0800::
@@ -1229,7 +1229,7 @@ routine_0800::
 .loop
     call routine_070C
     jr .loop
-    ldh a,[$FFA1]
+    ldh a, [$FFA1]
     rst $28
     jp $000B
 
@@ -1252,7 +1252,7 @@ routine_084E::
     ld [hl], e
     ld hl, $C77D
     ld a, [hl]
-    ld [$C77C] ,a
+    ld [$C77C], a
     inc [hl]
     pop de
     pop bc
@@ -1273,7 +1273,7 @@ routine_084E::
 SECTION "ROM0_08D6", ROM0[$08D6]
 routine_08D6::
 
-; ... 
+; ...
 
 SECTION "ROM0_0F86", ROM0[$0F86]
 character_creator_event::
@@ -1285,7 +1285,7 @@ character_creator_event::
 SECTION "ROM0_1674", ROM0[$1674]
 vram_transfer_start::
     rst rst_wait_vblank
-    di   
+    di
     push af
     push de
     push hl
@@ -1311,7 +1311,7 @@ vram_transfer_start::
 SECTION "ROM0_1691", ROM0[$1691]
 vram_transfer_end::
     rst rst_wait_vblank
-    di   
+    di
     push af
     push de
     push hl
@@ -1332,7 +1332,7 @@ done_vram_transfer_stat_dispatcher_change::
     pop hl
     pop de
     pop af
-    reti 
+    reti
 
 SECTION "ROM0_16A8", ROM0[$16A8]
 vram_transfer_stat_handler::
@@ -1361,7 +1361,7 @@ vram_transfer_new_frame_handler::
     jr nz, .wait_hblank
     call wait_lcd_busy
     ldh a, [$FF44]
-    ret 
+    ret
 
 ; Waits until the stat register is in mode 3 (busy)
 SECTION "ROM0_16D0", ROM0[$16D0]
@@ -1371,7 +1371,7 @@ wait_lcd_busy:
     and a, $03
     cp a, $03
     jr nz, .loop
-    ret  
+    ret
 
 SECTION "ROM0_16D9", ROM0[$16D9]
 default_stat_handler::
@@ -1400,7 +1400,7 @@ done_irq_handler::
     ldh [$FF45], a
     ldh [$FF0F], a
     pop af
-    reti 
+    reti
 
 SECTION "ROM0_16F9", ROM0[$16F9]
 stat_handler_common:
@@ -1511,7 +1511,7 @@ map_tilemap_reset_camera_load_screen::
 ; ...
 
 ; Loads a screen of tiles at the given scroll destination address in VRAM,
-; Using the current camera position 
+; Using the current camera position
 SECTION "ROM_20DB", ROM0[$20DB]
 map_tilemap_load_screen::
 ; ...
