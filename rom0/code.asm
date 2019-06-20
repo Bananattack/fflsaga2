@@ -985,25 +985,27 @@ routine_06F4::
     ldh [$FFA5], a
     jp routine_0550
 
+; Updates the accumulator to the value pointed to by [script_pointer]
+; Advances [script_pointer] by one byte.
 SECTION "ROM0_0701", ROM0[$0701]
-routine_0701::
+script_read_byte::
     push de
-    call routine_07B5
+    call script_load_pointer
     ld a, [de]
     inc de
-    call routine_07BE
+    call script_save_pointer
     pop de
     ret
 
 SECTION "ROM0_070C", ROM0[$070C]
-routine_070C::
+script_execute_step::
     xor a
     ld [$C77B], a
-    rst rst_call_701
+    rst rst_script_read_byte
     ; fallthrough
-    
+
 SECTION "ROM0_0711", ROM0[$0711]
-routine_0711::
+script_handle_opcode::
     cp a, $9E
     jr nc, routine_073B
 
@@ -1128,20 +1130,24 @@ routine_07AA::
     pop af
     ret
 
+; Result:
+; de is updated with the current 16-bit value in [script_pointer]
 SECTION "ROM0_07B5", ROM0[$07B5]
-routine_07B5::
+script_load_pointer::
     push hl
-    ld hl, $FFA2
+    ld hl, script_pointer
     ld e, [hl]
     inc hl
     ld d, [hl]
     pop hl
     ret
 
+; Result:
+; [script_pointer] is updated with the current 16-bit value in de.
 SECTION "ROM0_07BE", ROM0[$07BE]
-routine_07BE::
+script_save_pointer::
     push hl
-    ld hl, $FFA2
+    ld hl, script_pointer
     ld [hl], e
     inc hl
     ld [hl], d
@@ -1172,9 +1178,9 @@ routine_07C7::
     add hl, hl
     add hl, bc
     ldi a, [hl]
-    ldh [$FFA2], a
+    ldh [script_pointer], a
     ld a, [hl]
-    ldh [$FFA3], a
+    ldh [script_pointer+1], a
     ret
 
 SECTION "ROM0_07E9", ROM0[$07E9]
@@ -1233,7 +1239,7 @@ routine_0800::
     call routine_0796
     call routine_07AA
 .loop
-    call routine_070C
+    call script_execute_step
     jr .loop
     ldh a, [$FFA1]
     rst rst_bank_switch
@@ -1269,7 +1275,7 @@ routine_084E::
     ld a, $20
     ld [$C77E], a
 .loop
-    call routine_070C
+    call script_execute_step
     jr .loop
 
 SECTION "ROM0_0881", ROM0[$0881]
@@ -1389,7 +1395,7 @@ routine_0916::
     call routine_07E9
     ld bc, $7400
     call routine_07C7
-    call routine_07B5
+    call script_load_pointer
     ld hl, $C799
     ld bc, $C79B
     ld a, $02
@@ -1417,7 +1423,7 @@ routine_0916::
     dec l
     jr nz, .loop2
 
-    call routine_07BE
+    call script_save_pointer
     ld hl, $C800
     ld bc, $0300
     ld a, [$C799]
@@ -1552,7 +1558,7 @@ routine_0916::
 
     ld [$C7CF], a
 .loop3
-    call routine_070C
+    call script_execute_step
     jr .loop3    
 
 SECTION "ROM0_0A1F", ROM0[$0A1F]
@@ -1782,15 +1788,15 @@ routine_0B43::
 
 SECTION "ROM0_0B46", ROM0[$0B46]
 routine_0B46::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld e, a
     jp routine_063E
 
 SECTION "ROM0_0B4B", ROM0[$0B4B]
 routine_0B4B::    
-    rst rst_call_701
+    rst rst_script_read_byte
     ld e, a
-    rst rst_call_701
+    rst rst_script_read_byte
     jr routine_0B43
 
 SECTION "ROM0_0B50", ROM0[$0B50]
@@ -1814,7 +1820,7 @@ routine_0B64::
 
 SECTION "ROM0_0B66", ROM0[$0B66]
 routine_0B66::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld e, a
     and a, $F0
     swap a
@@ -1826,7 +1832,7 @@ routine_0B66::
 
 SECTION "ROM0_0B72", ROM0[$0B72]
 routine_0B72::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld b, $04
     ld hl, $C20F
     ld de, $0010
@@ -1871,9 +1877,9 @@ routine_0B9B::
 
 SECTION "ROM0_0BB6", ROM0[$0BB6]
 routine_0BB6::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld e, a
-    rst rst_call_701
+    rst rst_script_read_byte
     ld c, a
     and a, $0F
     ld b, a
@@ -1891,7 +1897,7 @@ routine_0BB6::
 
 SECTION "ROM0_0BCE", ROM0[$0BCE]
 routine_0BCE::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld b, a
     inc b
     ld a, [$C2D9]
@@ -1901,7 +1907,7 @@ routine_0BCE::
 
 SECTION "ROM0_0BD8", ROM0[$0BD8]
 routine_0BD8::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld hl, $C2DA
     add a
     rst rst_hl_plus_a
@@ -1920,7 +1926,7 @@ routine_0BE4::
 
 SECTION "ROM0_0BEF", ROM0[$0BEF]
 routine_0BEF::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld c, a
     ldh a, [$FFB0]
     cp c
@@ -1929,7 +1935,7 @@ routine_0BEF::
 
 SECTION "ROM0_0BF7", ROM0[$0BF7]
 routine_0BF7::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld c, a
     ld a, [$C2A1]
     cp c
@@ -1945,12 +1951,12 @@ routine_0C00::
 
 SECTION "ROM0_0C05", ROM0[$0C05]
 routine_0C05::
-    call routine_07B5
+    call script_load_pointer
     inc de
     inc de
     inc de
     inc de
-    jp routine_07BE
+    jp script_save_pointer
 
 SECTION "ROM0_0C0F", ROM0[$0C0F]
 routine_0C0F::
@@ -1974,7 +1980,7 @@ routine_0C21::
 
 SECTION "ROM0_0C27", ROM0[$0C27]
 routine_0C27::
-    rst rst_call_701
+    rst rst_script_read_byte
     and a
     jr z, .skipC57
     call enable_save_ram
@@ -2049,9 +2055,9 @@ routine_0C8C::
 
 SECTION "ROM0_0C9E", ROM0[$0C9E]
 routine_0C9E::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld  c, a
-    rst rst_call_701
+    rst rst_script_read_byte
     ld b, a
     call enter_menu_from_map
     DW $502A
@@ -2075,7 +2081,7 @@ routine_0CBA::
 
 SECTION "ROM0_0CC0", ROM0[$0CC0]
 routine_0CC0::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld b, a
 .loop2
     call transfer_current_oam
@@ -2086,7 +2092,7 @@ routine_0CC0::
 
 SECTION "ROM0_0CCC", ROM0[$0CCC]
 routine_0CCC::
-    rst rst_call_701
+    rst rst_script_read_byte
     jp routine_073B
 
 SECTION "ROM0_0CD0", ROM0[$0CD0]
@@ -2095,7 +2101,7 @@ routine_0CD0::
     call routine_0CEF
     ld b, $01
     call $1549
-    rst rst_call_701
+    rst rst_script_read_byte
     push af
     ld de, $C7D6
     ld a, [de]
@@ -2105,7 +2111,7 @@ routine_0CD0::
     ld [de], a
     pop af
     ld [hl], a
-    jp routine_0711
+    jp script_handle_opcode
 
 SECTION "ROM0_0CEC", ROM0[$0CEC]
 routine_0CEC::
@@ -2133,7 +2139,7 @@ routine_0CEF::
 
 SECTION "ROM0_0D05", ROM0[$0D05]
 routine_0D05::
-    rst rst_call_701
+    rst rst_script_read_byte
     cp a, $05
     jr c, .labelD1B
     cp a, $FF
@@ -2282,7 +2288,7 @@ routine_0DD0::
 
 SECTION "ROM0_0DDE", ROM0[$0DDE]
 routine_0DDE::
-    rst rst_call_701
+    rst rst_script_read_byte
     ld c, a
     ld hl, $C7A1
     add [hl]
@@ -2447,7 +2453,7 @@ routine_0EC5::
     call $0E5C
     ldh a,[$FF88]
     push af
-    rst rst_call_701
+    rst rst_script_read_byte
     ld [$C7F3], a
     cp a, $FF
     jr nz, $0ED8

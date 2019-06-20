@@ -25,3 +25,7 @@ joy_pressed_mask:: DS 1
 ; 3 = menu active
 SECTION "HRAM_FF96", HRAM[$FF96]
 menu_mode:: DS 1
+
+; Pointer to the currently executing script data.
+SECTION "HRAM_FFA2", HRAM[$FFA2]
+script_pointer:: DS 1

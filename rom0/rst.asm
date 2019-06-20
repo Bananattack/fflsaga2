@@ -4,7 +4,7 @@ rst_wait_vblank EQU $10
 rst_oam_dma_transfer EQU $18
 rst_call_800 EQU $20
 rst_bank_switch EQU $28
-rst_call_701 EQU $30
+rst_script_read_byte EQU $30
 rst_infinite_loop EQU $38
 
 ; Increments hl by a.
@@ -90,8 +90,8 @@ rst_bank_switch_::
 
 ; Calls a routine at hex address $701. Purpose unknown.
 SECTION "ROM0_30", ROM0[$30]
-rst_call_701_::
-    jp routine_0701
+rst_script_read_byte_::
+    jp script_read_byte
     nop
     nop
     nop
