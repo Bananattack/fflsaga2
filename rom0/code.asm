@@ -1001,6 +1001,7 @@ routine_070C::
     ld [$C77B], a
     rst rst_call_701
     ; fallthrough
+    
 SECTION "ROM0_0711", ROM0[$0711]
 routine_0711::
     cp a, $9E
@@ -1008,7 +1009,7 @@ routine_0711::
 
     cp a, $4E
     jr nc, .else
-    ld hl, $13BE
+    ld hl, jump_table_13BE
     add a
     rst rst_hl_plus_a
     ld e, [hl]
@@ -1271,8 +1272,6 @@ routine_084E::
     call routine_070C
     jr .loop
 
-; ...
-
 SECTION "ROM0_0881", ROM0[$0881]
 routine_0881::
     ldh a, [$FFA1]
@@ -1439,7 +1438,6 @@ routine_0916::
     jr z, .else
     ld hl, data_0B0B
     jr .done
-; ...
 .else
     ld hl, data_0B0D
 .done
@@ -2069,7 +2067,7 @@ routine_0CA9::
     and a
     jr z, .loop
     jp wait_button_release
-    
+
 SECTION "ROM0_0CBA", ROM0[$0CBA]
 routine_0CBA::    
     call $1909
