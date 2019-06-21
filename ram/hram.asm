@@ -28,4 +28,5 @@ menu_mode:: DS 1
 
 ; Pointer to the currently executing script data.
 SECTION "HRAM_FFA2", HRAM[$FFA2]
-script_pointer:: DS 1
+script_pointer_l:: DS 1
+script_pointer_h:: DS 1

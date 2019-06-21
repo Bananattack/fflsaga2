@@ -1041,8 +1041,8 @@ routine_06F4::
     ldh [$FFA5], a
     jp routine_0550
 
-; Updates the accumulator to the value pointed to by [script_pointer]
-; Advances [script_pointer] by one byte.
+; Updates the accumulator to the value pointed to by [script_pointer_h][script_pointer_l]
+; Advances [script_pointer_h][script_pointer_l] by one byte.
 SECTION "ROM0_0701", ROM0[$0701]
 script_read_byte::
     push de
@@ -1187,11 +1187,11 @@ routine_07AA::
     ret
 
 ; Result:
-; de is updated with the current 16-bit value in [script_pointer]
+; de is updated with the current 16-bit value in [script_pointer_h][script_pointer_l]
 SECTION "ROM0_07B5", ROM0[$07B5]
 script_load_pointer::
     push hl
-    ld hl, script_pointer
+    ld hl, script_pointer_l
     ld e, [hl]
     inc hl
     ld d, [hl]
@@ -1199,11 +1199,11 @@ script_load_pointer::
     ret
 
 ; Result:
-; [script_pointer] is updated with the current 16-bit value in de.
+; [script_pointer_h][script_pointer_l] is updated with the current 16-bit value in de.
 SECTION "ROM0_07BE", ROM0[$07BE]
 script_save_pointer::
     push hl
-    ld hl, script_pointer
+    ld hl, script_pointer_l
     ld [hl], e
     inc hl
     ld [hl], d
@@ -1234,9 +1234,9 @@ routine_07C7::
     add hl, hl
     add hl, bc
     ldi a, [hl]
-    ldh [script_pointer], a
+    ldh [script_pointer_l], a
     ld a, [hl]
-    ldh [script_pointer+1], a
+    ldh [script_pointer_h], a
     ret
 
 SECTION "ROM0_07E9", ROM0[$07E9]
