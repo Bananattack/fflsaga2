@@ -2,8 +2,14 @@ SECTION "ROM0_0200", ROM0[$0200]
 reset::
 ; ...
 
+; Arguments:
+; h = left-hand side
+; l = right-hand side
+;
+; Result:
+; hl = 16-bit product.
 SECTION "ROM0_02F0", ROM0[$02F0]
-routine_02F0::
+u8_mul::
     push af
     push bc
     ld b, $08
@@ -25,8 +31,15 @@ routine_02F0::
     pop af
     ret
 
+; Arguments:
+; h = left-hand side (numerator)
+; l = right-hand side (denominator)
+;
+; Result:
+; h = quotient
+; l = remainder 
 SECTION "ROM0_306", ROM0[$0306]
-routine_0306::
+u8_div::
     push af
     push bc
     ld a, l
@@ -125,8 +138,15 @@ routine_033F::
     pop af
     reti
 
+; Arguments:
+; - hl = dest
+; - de = source
+;
+; Result:
+; - de = de - hl;
+; - zero and carry flags are updated to the subtraction result
 SECTION "ROM0_0376", ROM0[$0376]
-routine_0376::
+u16_sub::
     ldh [$FF90], a
     push de
     ld a, l
@@ -146,15 +166,30 @@ routine_0376::
     ldh a, [$FF90]
     ret
 
+; Arguments:
+; - hl = dest
+; - de = source
+;
+; Result:
+; - zero and carry flags are updated to the comparison result
 SECTION "ROM0_038A", ROM0[$038A]
-routine_038A::
+u16_cmp::
     push hl
-    call routine_0376
+    call u16_sub
     pop hl
     ret
 
+; Arguments:
+; - de = dest pointer
+; - hl = source pointer
+;
+; Result:
+; - Performs a little-endian 24-bit addition.
+; - [de] = [de] + [hl]
+; - carry flag indicates whether the addition generated a carry
+; - zero flag indicates whether the addition resulted in the highest byte becoming zero.
 SECTION "ROM0_0390", ROM0[$0390]
-routine_0390::
+u24_add::
     ldh [$FF90], a
     push de
     push hl
@@ -176,8 +211,17 @@ routine_0390::
     ldh a, [$FF90]
     ret
 
+; Arguments:
+; - de = dest pointer
+; - hl = source pointer
+;
+; Result:
+; - Performs a little-endian 24-bit subtraction.
+; - [de] = [de] - [hl]
+; - zero flag and carry flags are updated to the subtraction result.
+; - (unlike the u24_add routine, this computes the full zero flag)
 SECTION "ROM0_03A6", ROM0[$03A6]
-routine_03A6::
+u24_sub::
     ldh [$FF90], a
     push bc
     push de
@@ -197,10 +241,19 @@ routine_03A6::
     ld a, [de]
     sbc [hl]
     ld [de], a
-    jr label_03CD
+    jr _u24_subtract_end
 
+; Arguments:
+; - de = dest pointer
+; - hl = source pointer
+;
+; Result:
+; - Performs a little-endian 24-bit comparison.
+; - Compare [de] to [hl]
+; - zero flag and carry flags are updated to the comparison result.
+; - (unlike the u24_add routine, this computes the full zero flag)
 SECTION "ROM0_03BC", ROM0[$03BC]
-routine_03BC::
+u24_cmp::
     ldh [$FF90], a
     push bc
     push de
@@ -219,7 +272,10 @@ routine_03BC::
     sbc [hl]
     ; fallthrough
 
-label_03CD::
+; Jumped to by u24_sub and u24_cmp.
+; Corrects the flags, pops register and returns.
+SECTION "ROM0_03CD", ROM0[$03CD]
+_u24_subtract_end::
     jr c, .else
     or c
     or b
@@ -355,7 +411,7 @@ routine_043E::
     ld a, h
     jr z, .skip
     inc l
-    call routine_0306
+    call u8_div
     ld a, l
 .skip
     add e
@@ -629,7 +685,7 @@ routine_0550::
     ldh a, [$FF90]
     ld l, a
     ld h, $0A
-    call routine_02F0
+    call u8_mul
     ld de, $6F80
     add hl, de
     push hl
@@ -1645,7 +1701,7 @@ routine_0A5C::
     ld l, a
     ld a, [$C798]
     ld h, a
-    call routine_02F0
+    call u8_mul
     add hl, bc
     ld a, [$C799]
     and a
@@ -2047,7 +2103,7 @@ routine_0C8C::
     call a_times_16
     ld l, a
     ld h, $15
-    call routine_02F0
+    call u8_mul
     add hl, bc
     ld bc, $A000
     add hl, bc
@@ -2321,7 +2377,7 @@ routine_0DF0::
     ld de, $9CC1
 .skip
     call routine_078D
-    call routine_038A
+    call u16_cmp
     jr nz, .done
     call routine_08AA
     call routine_078D
