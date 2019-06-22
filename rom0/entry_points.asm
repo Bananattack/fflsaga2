@@ -1,8 +1,9 @@
 SECTION "ROM0_0150", ROM0[$0150]
-u8_mul_entry:: jp u8_mul_u8
-u8_div_entry:: jp u8_div_u8
+u8_mul_u8_entry:: jp u8_mul_u8
+u8_div_u8_entry:: jp u8_div_u8
 u16_sub_entry:: jp u16_sub
 u16_cmp_entry:: jp u16_cmp
+u16_mul_u16_entry:: jp u16_mul_u16
 
 ; ...
 
@@ -23,6 +24,8 @@ SECTION "ROM0_0177", ROM0[$0177]
 vram_transfer_start_entry:: jp vram_transfer_start
 vram_transfer_end_entry:: jp vram_transfer_end
 banked_call_entry:: jp banked_call
+u24_mul_u8_entry:: jp u24_mul_u8
+u24_div_u8_entry:: jp u24_div_u8
 
 ; ...
 
