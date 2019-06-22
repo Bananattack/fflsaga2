@@ -1,6 +1,141 @@
 SECTION "ROM0_0200", ROM0[$0200]
 reset::
-; ...
+    di   
+    ld sp, $CF00
+    ld a, $80
+    ldh [$FF40], a
+    xor a
+    ldh [$FF0F], a
+    ldh [$FFFF], a
+    ldh [$FF41], a
+    ldh [$FF47], a
+    ldh [$FF48], a
+    ldh [$FF49], a
+    ldh [$FF43], a
+    ldh [$FF42], a
+    ld b, a
+    ld a, $1B
+
+    ld hl, $C776
+    push hl
+    cp [hl]
+    inc hl
+    jr nz, .skip
+    cpl  
+    cp [hl]
+    jr nz, .skip
+    inc b
+.skip
+    push bc
+    ld hl,$C000
+    ld b,$A0
+    call memclear8
+    ld hl, $C100
+    ld bc, $0D00
+    call memclear16
+    ld h, $CF
+    ld b, $11
+    call memclear16
+    ld hl, $FF80
+    ld b, $7F
+    call memclear8
+    pop bc
+    pop hl
+
+    ld a,$1B
+    ldi [hl], a
+    cpl  
+    ldi [hl], a
+    ld [hl], b
+    inc b
+    dec b
+    jr nz, .skip2
+    ld b, $40
+    ld hl, $C0A0
+    ldh a, [$FF04]
+.loop
+    ldi [hl],a
+    inc a
+    dec b
+    jr nz, .loop
+.skip2
+
+    ld hl, $C779
+    ld [hl], $A0
+    inc hl
+    ld [hl], $CC
+    ld hl, oam_dma_transfer_code
+    ld de, oam_dma_transfer_routine
+    ld b, $08
+    call memcpy8
+    ld hl, ld_sp_ret_dispatcher_code
+    ld de, ld_sp_ret_dispatcher
+    ld b, $0C
+    call memcpy8
+
+    ld a, $0E
+    rst rst_bank_switch
+    call $4003
+    di   
+    xor a
+    ldh [$FF45], a
+    ldh [$FF0F], a
+    ld a, $03
+    ldh [$FFFF], a
+    ld a, $40
+    ldh [$FF41], a
+    ; vblank_dispatcher: `jp $16DF`
+    ld hl, vblank_dispatcher
+    ld a, $C3
+    ldi [hl], a
+    ld a, $DF
+    ldi [hl], a
+    ld a, $16
+    ldi [hl], a
+    ; stat_dispatcher: `jp $16D9` 
+    ld hl, stat_dispatcher
+    ld a, $C3
+    ldi [hl], a
+    ld a, $D9
+    ldi [hl], a
+    ld a, $16
+    ld [hl], a
+    call routine_0550
+    ld hl, $4800
+    ld bc, $0800
+    ld a, $04
+    call banked_vramcpy16
+
+    call enable_save_ram
+    ld hl, $A781
+    ldi a, [hl]
+    cp a, $1B
+    jr nz, .then
+    ld a, [hl]
+    cp a, $E4
+    jr z, .done
+.then
+    ld a, $01
+    ld [$A780], a
+.done
+    call disable_save_ram
+
+    ld hl, $C200
+    ld c, $04
+.loop2
+    ld b, $04
+    ld a, $FF
+    call memset8
+    ld  a, $1C
+    rst rst_hl_plus_a
+    dec c
+    jr nz, .loop2
+
+    ld a, $01
+    rst rst_bank_switch
+    call $500F
+    jp nc, $1900
+    jp $1903
 
 ; Arguments:
 ; h = left-hand side
@@ -2561,7 +2696,7 @@ routine_0EC5::
     call $190F
 .skip
     pop af
-    rst $28
+    rst rst_bank_switch
 .loop
     xor a
     ld [$C764],a
