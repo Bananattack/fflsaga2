@@ -191,7 +191,7 @@ u16_cmp::
 ; - hl = source pointer
 ;
 ; Result:
-; - Performs a little-endian 24-bit addition.
+; - Performs a 24-bit addition.
 ; - [de] = [de] + [hl]
 ; - carry flag indicates whether the addition generated a carry
 ; - zero flag indicates whether the addition resulted in the highest byte becoming zero.
@@ -223,7 +223,7 @@ u24_add::
 ; - hl = source pointer
 ;
 ; Result:
-; - Performs a little-endian 24-bit subtraction.
+; - Performs a 24-bit subtraction.
 ; - [de] = [de] - [hl]
 ; - zero flag and carry flags are updated to the subtraction result.
 ; - (unlike the u24_add routine, this computes the full zero flag)
@@ -255,7 +255,7 @@ u24_sub::
 ; - hl = source pointer
 ;
 ; Result:
-; - Performs a little-endian 24-bit comparison.
+; - Performs a 24-bit comparison.
 ; - Compare [de] to [hl]
 ; - zero flag and carry flags are updated to the comparison result.
 ; - (unlike the u24_add routine, this computes the full zero flag)
@@ -299,12 +299,12 @@ _u24_subtract_end::
     ret
 
 ; Arguments:
-; de = pointer to 24-bit left-hand side / 32-bit dest (4 bytes)
-; a = 8-bit right-hand side
+; - de = dest pointer (passes in 24-bit multiplicand, receives 32-bit product)
+; - a = 8-bit multiplier
 ; 
 ; Result:
 ; - Performs a 24-bit x 8-bit -> 32-bit multiplication.
-; - The 32-bit result is written at the 24-bit value's address.
+; - [de] = 32-bit product
 SECTION "ROM0_03DC", ROM0[$03DC]
 u24_mul_u8::
     push af
@@ -347,8 +347,16 @@ u24_mul_u8::
     ld [hl], a
     jp pop_hl_de_bc_af
 
+; Arguments:
+; - de = dest pointer (passes in 24-bit numerator, receives 24-bit quotient)
+; - a = 8-bit denominator
+; 
+; Result:
+; - Performs a 24-bit / 8-bit division
+; - [de] = 24-bit quotient
+; - a = 8-bit remainder
 SECTION "ROM0_040B", ROM0[$040B]
-routine_040B::
+u24_div_u8::
     push bc
     push de
     push hl
