@@ -42,7 +42,7 @@ reset::
     pop bc
     pop hl
 
-    ld a,$1B
+    ld a, $1B
     ldi [hl], a
     cpl  
     ldi [hl], a
@@ -134,8 +134,8 @@ reset::
     ld a, $01
     rst rst_bank_switch
     call $500F
-    jp nc, $1900
-    jp $1903
+    jp nc, routine_1900
+    jp routine_1903
 
 ; Arguments:
 ; h = left-hand side
@@ -2319,7 +2319,7 @@ routine_0CA9::
 
 SECTION "ROM0_0CBA", ROM0[$0CBA]
 routine_0CBA::    
-    call $1909
+    call routine_1909
     jp transfer_current_oam
 
 SECTION "ROM0_0CC0", ROM0[$0CC0]
@@ -2700,11 +2700,11 @@ routine_0EC5::
     ld [$C7F3], a
     cp a, $FF
     jr nz, .else
-    call $191E
+    call routine_191E
     jr .done
 .else
     ld c, a
-    call $190F
+    call routine_190F
 .done
     pop af
     rst rst_bank_switch
@@ -2748,7 +2748,7 @@ routine_0F1A::
     ld a, $E4
     ld [$C2A0], a
     call $5024
-    call $1921
+    call routine_1921
     pop af
     rst rst_bank_switch
     ret  
@@ -2823,7 +2823,7 @@ character_creator_event::
         DB $01 ; subroutine bank
     ldh a, [$FF88]
     push af
-    call $1915
+    call routine_1915
     pop af
     rst rst_bank_switch
     jp routine_150A
@@ -3711,7 +3711,7 @@ routine_1490::
     jp c, routine_0800
     cp a, $04
     jr z, routine_14AC
-    call $1906
+    call routine_1906
     ld e, l
     ld d, h
     jp script_save_pointer
@@ -3730,7 +3730,7 @@ routine_14AC::
     rst rst_bank_switch
     push af
     call $5009
-    call $191B
+    call routine_191B
     pop af
     rst rst_bank_switch
     call routine_150A
@@ -3977,7 +3977,7 @@ SECTION "ROM0_15F7", ROM0[$15F7]
 routine_15F7::
     xor a
 .loop
-    call $0376
+    call u16_sub
     inc a
     jr nc, .loop
     dec a
@@ -3986,8 +3986,99 @@ routine_15F7::
     inc bc
     ret
 
+SECTION "ROM0_1603", ROM0[$1603]
+routine_1603::
+.loop
+    cp [hl]
+    ret z
+    inc hl
+    inc hl
+    dec c
+    jr nz, .loop
+    scf  
+    ret  
 
-; ...
+SECTION "ROM0_160C", ROM0[$160C]
+routine_160C::
+    ld hl, $6B70
+    rst rst_hl_plus_a
+    ld a, $0D
+    call banked_load
+    ld h, $40
+    add h
+    ld h, a
+    ld l, $00
+    ld a, $03
+    ld b, $80
+    jp banked_vramcpy8
+
+SECTION "ROM0_1622", ROM0[$1622]
+routine_1622::
+    ld hl,$D012
+    ld a,[$C709]
+    call routine_05D9
+    ld a, b
+    add a
+    add b
+    rst rst_hl_plus_a
+    ld a, [hl]
+    cp a, $FF
+    ret z
+    push hl
+    inc hl
+    ld h, [hl]
+    ld l, a
+    ld de, $6F80
+    call hl_times_8_plus_de
+    ld a, $0C
+    call banked_load
+    pop hl
+    and a, $01
+    ret z
+    scf  
+    ret
+
+SECTION "ROM0_1648", ROM0[$1648]
+routine_1648::
+    push bc
+    push de
+    push hl
+    ld b, a
+    ld a, $0F
+    rst rst_bank_switch
+    push af
+    ld hl, $4238
+    ld d, $08
+.loop
+    ld c, [hl]
+    inc hl
+    ld e, c
+    inc e
+    ld a, b
+    call test_bit
+    jr nz, .found
+    dec d
+    jr nz, .loop
+.not_found
+    ld e, $00
+.found
+    pop af
+    rst rst_bank_switch
+    ld a, e
+    pop hl
+    pop de
+    pop bc
+    ret
+
+SECTION "ROM0_166B", ROM0[$166B]
+routine_166B::
+    push af
+.loop
+    ldh a,[$FF44]
+    cp a, $90
+    jr nz, .loop
+    pop af
+    ret  
 
 ; Result:
 ; - [vram_transfer_stat_dispatcher_old] is set to the previous stat handler
@@ -4156,10 +4247,29 @@ stat_handler_common:
     ld [$ff00+c], a
     call poll_joypad_long
 SECTION "ROM0_173D", ROM0[$173D]
-; ...
-SECTION "ROM0_1751", ROM0[$1751]
-.handle_reset_combo
-; ...
+    and b
+    cpl  
+    ldi [hl], a
+    inc hl
+    inc hl
+    ldd a, [hl]
+    or [hl]
+    dec hl
+    and [hl]
+    dec hl
+    and [hl]
+    ldh [joy_held_mask], a
+    ld a, $30
+    ld [$ff00+c], a
+.check_soft_reset
+    ldh a, [joy_held_mask]
+    and a, $0F
+    cp a, $0F
+    jp z, $0200
+.done_check_soft_reset
+    ldh a, [$FF96]
+    and a
+    call nz, routine_176C
 SECTION "ROM0_175C", ROM0[$175C]
     ld hl, $FF9C
     dec [hl]
@@ -4187,21 +4297,852 @@ poll_joypad_short::
     or a, $F0
     ret
 
+SECTION "ROM0_176C", ROM0[$176C]
+routine_176C::
+    ld  a, $0F
+    call bank_switch
+    push af
+    ld hl, $C7C6
+    inc [hl]
+    ld a, [hl]
+    and a, $10
+    jr z, .skip1783
+    xor a
+    ldi [hl], a
+    ld a, [hl]
+    and a ,$01
+    xor a, $01
+    ld [hl], a
+.skip1783
+    ldh a, [$FF96]
+    bit 0, a
+    jp z, .done182A
+    ld hl,$CC00
+    ld b, $80
+    call memclear8
+    ld hl, $C7A6
+    ld b, $08
+.loop1797
+    push bc
+    ld a, [hl]
+    rla  
+    jp nc, .done1821
+    push hl
+    ldi a, [hl]
+    ldh [$FF95], a
+    ldi a, [hl]
+    ldh [$FF94], a
+    ldh a, [$FF95]
+    and a, $07
+    add a
+    add a
+    add a
+    add a
+    ld d, [hl]
+    inc hl
+    ld e, [hl]
+    ld l, a
+    ld h, $CC
+    ldh a, [$FF95]
+    bit 5, a
+    jr z, .skip17BE
+    ld a, [$C7C7]
+    and a
+    jr z, .done1820
+.skip17BE
+    ldh a, [$FF95]
+    bit 6, a
+    jr z, .skip17CF
+    ldh a, [$FF94]
+    bit 2, a
+    jr nz, .skip17CF
+    ld a, [$C7C7]
+    add e
+    ld e, a
+.skip17CF
+    push hl
+    call routine_1869
+    ld hl, $4200
+    ldh a, [$FF95]
+    bit 6, a
+    jr z, .skip17E5
+    ld a, [$C7C7]
+    and a
+    jr z, .skip17E5
+    ld hl, $4218
+.skip17E5
+    ldh a, [$FF95]
+    bit 4, a
+    jr z, .skip17EE
+    ld a, $0C
+    rst rst_hl_plus_a
+.skip17EE
+    ldh a, [$FF94]
+    and a, $03
+    add a
+    add a
+    rst rst_hl_plus_a
+    ld e, l
+    ld d, h
+    pop hl
+    ldh a, [$FF95]
+    and a, $07
+    add a
+    add a
+    add a
+    ldh [$FF94], a
+    ldh a, [$FF95]
+    and a, $08
+    rlca 
+    ldh [$FF93],a
+    ld b, $04
+.loop180A
+    inc hl
+    inc hl
+    ldh a, [$FF94]
+    ld c, a
+    ld a, [de]
+    and a, $0F
+    add c
+    ldi [hl], a
+    ldh a, [$FF93]
+    ld c, a
+    ld a, [de]
+    inc de
+    and a, $F0
+    or c
+    ldi [hl], a
+    dec b
+    jr nz, .loop180A
+.done1820
+    pop hl
+.done1821
+    inc hl
+    inc hl
+    inc hl
+    inc hl
+    pop bc
+    dec b
+    jp nz, .loop1797
+.done182A
+    ld hl, $CC90
+    xor a
+    ldh [$FF95], a
+    ld c, $97
+    add a
+    add c
+    ld c, a
+    ld a, [$ff00+c]
+    ld d, a
+    inc c
+    ld a, [$ff00+c]
+    ld e, a
+    inc a
+    jr nz, .else1844
+    ld b, $10
+    call memclear8
+    jr .done185A
+.else1844
+    call d_times_8_e_times_8
+    push hl
+    call routine_1869
+    pop hl
+    ld b, $04
+    ld a, $78
+.loop1850
+    inc hl
+    inc hl
+    ldi [hl], a
+    inc a
+    ld [hl], $00
+    inc hl
+    dec b
+    jr nz, .loop1850
+.done185A::
+    ld hl, $CC80
+    ldh a, [$FF95]
+    inc a
+    cp a, $02
+    jr c ,$182E
+    pop af
+    call bank_switch
+    ret
+
+routine_1869::
+    push af
+    push bc
+    ld a, $04
+    ld bc, $4230
+.loop
+    ldh [$FF93], a
+    ld a, [bc]
+    inc bc
+    add d
+    ldi [hl], a
+    ld a, [bc]
+    inc bc
+    add e
+    ldi [hl], a
+    inc hl
+    inc hl
+    ldh a, [$FF93]
+    dec a
+    jr nz, .loop
+    pop bc
+    pop af
+    ret
+
+SECTION "ROM0_1884", ROM0[$1884]
+routine_1884::
+    call banked_call
+        DW $5000
+        DB $01
+    ret
+
+SECTION "ROM0_188B", ROM0[$188B]
+routine_188B::
+    call banked_call
+        DW $5003
+        DB $01
+    ret
+
+SECTION "ROM0_1892", ROM0[$1892]
+routine_1892::
+    call banked_call
+        DW $5015
+        DB $01
+    ret
+
+SECTION "ROM0_1899", ROM0[$1899]
+routine_1899::
+    call banked_call
+        DW $5018
+        DB $01
+    ret
+
+SECTION "ROM0_18A0", ROM0[$18A0]
+routine_18A0::
+    call banked_call
+        DW $501B
+        DB $01
+    ret
+
+SECTION "ROM0_18A7", ROM0[$18A7]
+routine_18A7::
+    call banked_call
+        DW $6080
+        DB $0F
+    ret
+
+SECTION "ROM0_18AE", ROM0[$18AE]
+routine_18AE::
+    call banked_call
+        DW $5000
+        DB $0D
+    ret
+
+SECTION "ROM0_18B5", ROM0[$18B5]
+routine_18B5::
+    call banked_call
+        DW $6083
+        DB $0F
+    ret 
+
+SECTION "ROM0_18BC", ROM0[$18BC]
+routine_18BC::
+    xor a
+    call routine_18C3
+    ldh a, [$FF8C]
+    ret
+
+routine_18C3::
+    push af
+    push bc
+    push de
+    push hl
+    ld b, a
+    ld a, [$C79A]
+    add a
+    or b
+    ld [$C7CD], a
+    ld a, $01
+    rst rst_bank_switch
+    push af
+    call $500C
+    pop af
+    rst rst_bank_switch
+    jp pop_hl_de_bc_af
+
+routine_18DC::
+    push af
+    push bc
+    push de
+    push hl
+    ld b, a
+    ld a, [$C79A]
+    add a
+    or b
+    ld [$C7CD], a
+    ld a, $01
+    rst rst_bank_switch
+    push af
+    call $500C
+    pop af
+    rst rst_bank_switch
+    jp pop_hl_de_bc_af
+
+SECTION "ROM0_18F5", ROM0[$18F5]
+    nop  
+    nop  
+    nop  
+    nop  
+    nop  
+    nop  
+    nop  
+    nop  
+    nop  
+    nop  
+    nop
+
+SECTION "ROM0_1900", ROM0[$1900]
+routine_1900: jp routine_19D6
+routine_1903: jp load_game
+routine_1906: jp $388C
+routine_1909: jp $333C
+routine_190C: jp $3232
+routine_190F: jp $2B14
+routine_1912: jp routine_194B
+routine_1915: jp routine_1B5F
+routine_1918: jp routine_1B99
+routine_191B: jp $2FB1
+routine_191E: jp $2ADF
+routine_1921: jp $1F1A
+    nop  
+    nop  
+    nop  
+    nop
+
+SECTION "ROM0_1928", ROM0[$1928]
+table_1928::
+    DB $00, $FC, $00, $02, $01, $00, $FF, $00, $02, $FF, $FF, $01, $01, $00, $FF, $04, $08, $0A, $0C, $0C, $0E, $0C, $0A, $08, $04, $FC, $F8, $F4, $F2, $F0, $F2, $F4, $F6, $FA, $80
+
+SECTION "ROM0_194B", ROM0[$194B]
+routine_194B::
+    ld a, [$C44B]
+    ld [$C2A5], a
+    ld a, [$C44C]
+    ld [$C2A6], a
+    ld a, [$C42E]
+    swap a
+    and a, $0F
+    ld c, a
+    ld a, [$C42C]
+    add c
+    ld c, a
+    ld a, [$C436]
+    rrca 
+    rrca 
+    and a, $C0
+    or c
+    ld [$C2A7], a
+    ld a, [$C42F]
+    swap a
+    and a, $0F
+    ld c, a
+    ld a, [$C42D]
+    add c
+    ld [$C2A8], a
+    ld a, [$C434]
+    ld [$C33D], a
+    ld a, [$C43A]
+    ld [$C33E], a
+    ld a, [$C43B]
+    ld [$C33F], a
+    ld a, [$C460]
+    ld [$C305], a
+    ret
+
 SECTION "ROM0_1997", ROM0[$1997]
 load_game::
-; ...
+    ld a, $69
+    ld [$C468], a
+    ld a, [$C2A5]
+    ld [$C44B], a
+    ld a, [$C2A6]
+    ld [$C44C], a
+    ld a, [$C2A7]
+    ld b, a
+    and a, $3F
+    sub a, $05
+    ld [$C42C], a
+    ld a, b
+    rlca 
+    rlca 
+    and a, $03
+    ld [$C436], a
+    ld a, [$C2A8]
+    and a, $3F
+    sub a, $04
+    ld [$C42D], a
+    ld a, $40
+    ld [$C42F], a
+    ld a, $50
+    ld [$C42E], a
+    ld a, $01
+    ld [$C466], a
+    jr routine_19F0
+
+SECTION "ROM0_19D6", ROM0[$19D6]
+routine_19D6::
+    ld a, $69
+    ld [$C468], a
+    xor a
+    ld [$C466], a
+    ld a, $FE
+    ld [$C442], a
+    ld a, $06
+    ld [$C443], a
+    call routine_1BF0
+    ld a,$01
+    jr routine_19F1
+
+SECTION "ROM0_19F0", ROM0[$19F0]
+routine_19F0::
+    xor a
+routine_19F1::
+    ld [$C45B], a
+    ldh [$FF47], a
+    ldh [$FF48], a
+    ldh [$FF49], a
+    ld a, $90
+    ldh [$FF4A], a
+    call routine_1B37
+    call $1CAF
+    ld a, [$C450]
+    call map_load_tileset_graphics
+    call $2232
+    ld a, [$C450]
+    call map_load_tileset_types
+    call routine_1A7B
+    call $1F23
+    call $1E21
+    call $338A
+    call $1D5C
+    call $32D8
+    ld a, [$C466]
+    or a
+    jr z, .skip
+    ld a, [$C33D]
+    ld [$C434], a
+    ld a, [$C33E]
+    ld [$C43A], a
+    ld a, [$C33F]
+    ld [$C43B], a
+.skip
+    call $20C8
+    call $3EA2
+    ; fallthrough
+SECTION "ROM0_1A43", ROM0[$1A43]
+routine_1A43::
+.loop
+    ld a, [$C43D]
+    or a
+    jr nz, .skip2
+    call $27C9
+    ld  a,[$C443]
+    cp a, $0E
+    jp z, routine_1AD9
+    cp a, $05
+    jr c, .skip
+    cp a, $07
+    jp c, routine_1AD9
+.skip
+    call $3039
+    call $26D5
+    call $2FBF
+.skip2
+    call $3249
+    call $344B
+    call $391D
+    jr .loop
+
+SECTION "ROM0_1A71", ROM0[$1A71]
+table_1A71::
+    DB $00, 00
+SECTION "ROM0_1A73", ROM0[$1A73]
+table_1A73::
+    DB $00, $01, $00, $FF, $FF, $00, $01, $00
+
+SECTION "ROM0_1A7B", ROM0[$1A7B]
+routine_1A7B::
+    ld a, $00
+    ld [$C435], a
+    xor a  
+    ld_abs [$FFC0], a
+    ld [$C45C], a
+    ld [$C45D], a
+    ld a, $FF
+    ld [$C442], a
+    ld [$C443], a
+    ld a, $C3
+    ldh [$FF40], a
+    ret  
+
+SECTION "ROM0_1A97", ROM0[$1A97]
+routine_1A97::
+    push hl
+    push af
+    call transfer_map_oam_entry
+    ld a, [$C305]
+    and a, $F0
+    cp a, $10
+    jr nz, .else
+    ld hl, $C441
+    inc [hl]
+    ld a, [hl]
+    and a, $07
+    add a
+    add a, $27
+    ld l, a
+    ld h, $19
+    ldi a, [hl]
+    ldh [$FFC3], a
+    ld a, [hl]
+    ldh [$FFC4], a
+    jr .done
+.else
+    xor a
+    ldh [$FFC3], a
+    ldh [$FFC4], a
+    ld hl, table_1928
+.done
+    ldh a, [$FFC2]
+    add [hl]
+    ldh [$FF43], a
+    dec l
+    ldh a, [$FFC1]
+    add [hl]
+    ldh [$FF42], a
+    ld a, [$C464]
+    inc a
+    and a, $1F
+    ld [$C464], a
+    pop af
+    pop hl
+    ret
+
+SECTION "ROM0_1AD9", ROM0[$1AD9]
+routine_1AD9::
+    call routine_1AEC
+    ld a,$FF
+    ld [$C442],a
+    ld [$C443],a
+    jp routine_1A43
+
+SECTION "ROM0_1AE7", ROM0[$1AE7]
+routine_1AE7::
+    call routine_1BDB
+    jr routine_1AEF
+
+SECTION "ROM0_1AEC", ROM0[$1AEC]
+routine_1AEC::
+    call routine_1BF0
+    ; fallthrough
+SECTION "ROM0_1AEF", ROM0[$1AEF]
+routine_1AEF::
+    call $3E5B
+    ld a, [$C305]
+    ld [$C463], a
+    and a,$0F
+    ld [$C305], a
+    call $2ECE
+    call $1CAF
+    call routine_1B37
+    ld a,[$C44D]
+    or a
+    jr nz, .skip
+    ld a, [$C450]
+    call map_load_tileset_graphics
+    call $2232
+    ld a, [$C450]
+    call map_load_tileset_types
+    call $1F23
+    call $338A
+    call $1D5C
+.skip
+    call $1E21
+    call $32D8
+    call $20C8
+    call $3E4C
+    ld a,[$C463]
+    ld [$C305],a
+    ret 
+
+SECTION "ROM0_1B37", ROM0[$1B37]
+routine_1B37::
+    ld hl, $C010
+    xor a
+    ld b, $90
+.loop
+    ldi [hl], a
+    dec b
+    jr nz, .loop
+
+    ld hl, $C110
+    ld b, $90
+.loop2
+    ldi [hl], a
+    dec b
+    jr nz, .loop2
+    ret
 
 SECTION "ROM0_1B4B", ROM0[$1B4B]
 clear_map_oam_buffers::
-; ...
+    ld hl, $C000
+    xor a
+    ld b, $A0
+.loop
+    ldi [hl], a
+    dec b
+    jr nz, .loop
+    ld hl, $C100
+    ld b, $A0
+.loop2
+    ldi [hl],a
+    dec b
+    jr nz, .loop2
+    ret
+
+SECTION "ROM0_1B5F", ROM0[$1B5F]
+routine_1B5F::
+    call exit_character_creator_to_map_inner
+    ld a, $0D
+    rst rst_bank_switch
+    ret
+
+SECTION "ROM0_1B66", ROM0[$1B66]
+routine_1B66::
+    ld a, [$C305]
+    ld [$C461], a
+    and a, $0F
+    ld [$C305], a
+    call $2ECE
+    rst rst_call_800
+    ld a, [$C305]
+    and a, $F0
+    cp a, $30
+    jr z, routine_1B90
+    or a
+    ret nz
+    ld a, [$C305]
+    and a, $0F
+    ld b, a
+    ld a, [$C461]
+    and a, $F0
+    or b
+    ld [$C305], a
+    ret  
+
+SECTION "ROM0_1B90", ROM0[$1B90]
+routine_1B90::
+    ld a, [$C305]
+    and a, $0F
+    ld [$C305], a
+    ret  
+
+SECTION "ROM0_1B99", ROM0[$1B99]
+routine_1B99::
+    cp a, $04
+    jr z, routine_1BB4
+    inc a
+    push bc
+    ld b, a
+    ld a, [$C2A0]
+    rlca 
+    rlca 
+.loop
+    rrca 
+    rrca 
+    dec b
+    jr nz, .loop
+    pop bc
+    and a, $03
+    swap a
+    sla a
+    add l
+    ld l, a
+    ret  
+
+SECTION "ROM0_1BB4", ROM0[$1BB4]
+routine_1BB4::
+    ld a, l
+    add a, $80
+    ld l, a
+    ret  
 
 ; Arguments:
 ; a = tileset index
 ;     (tileset pointer address = ROM7:($7000 + a * 32)
 ; Result:
-; [map_metatile_types] table is loaded with the tile types for each metatile in the tileset.
-SECTION "ROM0_1BB9", ROM0[$1B4B]
-load_tileset_types::
+; [map_tileset_types] table is loaded with the tile types for each metatile in the tileset.
+SECTION "ROM0_1BB9", ROM0[$1BB9]
+map_load_tileset_types::
+    ld c, $00
+    srl a
+    rr c
+    srl a
+    rr c
+    srl a
+    rr c
+    ld b,a
+    ld hl, $7000
+    add hl, bc
+    ld a, $07
+    rst rst_bank_switch
+    ld de, $C520
+    ld b, $20
+.loop
+    ldi a, [hl]
+    ld [de], a
+    inc e
+    dec b
+    jr nz, .loop
+    ret
+
+routine_1BDB::
+    ld a, [$C442]
+    ld l, a
+    ld a, [$C443]
+    and a, $01
+    ld h, a
+    add hl, hl
+    add hl, hl
+    ld de, $4000
+    ld a, $07
+    rst rst_bank_switch
+    add  hl, de
+    jr routine_1C61
+
+SECTION "ROM0_1BF0", ROM0[$1BF0]
+routine_1BF0::
+    ld hl, table_1A71
+    call $29B3
+    call $2636
+    ld a, [bc]
+    res 7, a
+    ld [bc], a
+    ld a, [$C442]
+    ld l, a
+    ld a, [$C443]
+    cp a, $0E
+    jr nz, routine_1C12
+    and a, $01
+    ld h, a
+    add hl, hl
+    add hl, hl
+    ld de, $6F80
+    jr routine_1C27
+
+SECTION "ROM0_1C12", ROM0[$1C12]
+routine_1C12::
+    and a, $01
+    xor a, $01
+    ld h, a
+    jr z, routine_1C22
+    ld a, l
+    inc a
+    jr nz, routine_1C22
+    ld hl, $C316
+    jr routine_1C61
+
+SECTION "ROM0_1C22", ROM0[$1C22]
+routine_1C22::
+    add hl, hl
+    add hl, hl
+    ld de, $4000
+    ; fallthrough
+SECTION "ROM0_1C27", ROM0[$1C27]
+routine_1C27::
+    ld a,$07
+    rst rst_bank_switch
+    add hl, de
+    ld a, [$C2A5]
+    ld [$C316], a
+    ld a, [$C2A6]
+    ld [$C317], a
+    ld a, [$C42C]
+    ld e, a
+    ld a, [$C42E]
+    swap a
+    and a, $0F
+    add e
+    ld e, a
+    ld a, [$C436]
+    xor a, $01
+    rrca 
+    rrca 
+    and a, $C0
+    or e
+    ld [$C318], a
+    ld a, [$C42D]
+    ld e, a
+    ld a, [$C42F]
+    swap a
+    and a, $0F
+    add e
+    inc a
+    ld [$C319], a
+    ; fallthrough
+SECTION "ROM0_1C61", ROM0[$1C61]
+routine_1C61::
+    ld e, [hl]
+    inc hl
+    ld d, [hl]
+    inc hl
+    ld a, e
+    ld [$C2A5], a
+    ld [$C44B], a
+    ld a, d
+    ld [$C2A6], a
+    ld [$C44C], a
+    ldi a, [hl]
+    ld b, a
+    and a, $3F
+    sub a, $05
+    ld [$C42C], a
+    ld a, b
+    rlca 
+    rlca 
+    and a, $03
+    ld [$C436], a
+    ldi a, [hl]
+    ld b, a
+    and a, $3F
+    sub a, $04
+    ld [$C42D], a
+    ld a, b
+    and a, $40
+    ld [$C44D], a
+    ld a, b
+    and a, $80
+    ld b, a
+    jr z, .skip
+    ld a, $16
+    ldh [$FFB2], a
+.skip
+    ld a, [$C319]
+    or b
+    ld [$C319],a
+    ld a,$40
+    ld [$C42F],a
+    ld a,$50
+    ld [$C42E],a
+    ret
+
+SECTION "ROM0_1CAF", ROM0[$1CAF]
+routine_1CAF::
+; ...
+
 ; ...
 
 ; Arguments:
@@ -4210,7 +5151,7 @@ load_tileset_types::
 ; Result:
 ; VRAM at $8800 is loaded is loaded with the tile graphics for each metatile in the tileset.
 SECTION "ROM0_1F55", ROM0[$1F55]
-load_tileset_graphics::
+map_load_tileset_graphics::
 ; ...
 
 ; Resets the scroll destination address to the top-left, and loads the screen.

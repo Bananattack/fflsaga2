@@ -78,7 +78,7 @@ map_oam_animation_timer:: DS 1
 
 ; The types of every metatile in the currently loaded tileset.
 SECTION "WRAM0_C520", WRAM0[$C520]
-map_metatile_types:: DS 32
+map_tileset_types:: DS 32
 
 ; Background palette.
 SECTION "WRAM0_C700", WRAM0[$C700]
