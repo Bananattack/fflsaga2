@@ -498,8 +498,28 @@ bank_switch::
     pop bc
     ret
 
+
+; Calls a subroutine in another bank.
+;
+; The 3 bytes after the pc on the stack are the
+; (low, high, bank) of the subroutine to call.
+;
+; After the call, the previous bank is restored.
+; The register pairs are passed through to the subroutine,
+; and the result of subroutine call is left in-tact.
+;
+; Usage:
+; call banked_call
+; DW subroutine_address
+; DB subroutine_bank
+;
+; Arguments:
+; - af, hl, bc, de are passed to the subroutine.
+;
+; Result:
+; - af, hl, bc, de contain the result of calling the subroutine.
 SECTION "ROM0_04BF", ROM0[$04BF]
-enter_menu_from_map::
+banked_call::
     push af
     push hl
     push de
@@ -2016,11 +2036,10 @@ routine_0C05::
 
 SECTION "ROM0_0C0F", ROM0[$0C0F]
 routine_0C0F::
-    call enter_menu_from_map
-    DW $5036
-    DW $CD01
-    xor c
-    inc c
+    call banked_call
+        DW $5036 ; subroutine address
+        DB $01 ; subroutine bank
+    call routine_0CA9
     jp reset
 
 SECTION "ROM0_0C1B", ROM0[$0C1B]
@@ -2115,9 +2134,10 @@ routine_0C9E::
     ld  c, a
     rst rst_script_read_byte
     ld b, a
-    call enter_menu_from_map
-    DW $502A
-    DW $C901
+    call banked_call
+        DW $502A ; subroutine address
+        DB $01 ; subroutine bank
+    ret
 
 SECTION "ROM0_0CA9", ROM0[$0CA9]
 routine_0CA9::
@@ -2528,11 +2548,10 @@ routine_0EC5::
     cpl  
     ldh [$FF8B],a
     call $14E3
-    call enter_menu_from_map
-    DW $4000
-    DW $CD0D
-    inc e
-    dec d
+    call banked_call
+        DW $4000 ; subroutine address
+        DB $0D ; subroutine bank
+    call $151C
     ld a, [$C763]
     and a
     ret z

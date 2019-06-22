@@ -22,7 +22,7 @@ joy_update_entry:: jp joy_update
 SECTION "ROM0_0177", ROM0[$0177]
 vram_transfer_start_entry:: jp vram_transfer_start
 vram_transfer_end_entry:: jp vram_transfer_end
-enter_menu_from_map_entry:: jp enter_menu_from_map
+banked_call_entry:: jp banked_call
 
 ; ...
 
