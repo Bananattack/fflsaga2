@@ -1,6 +1,6 @@
 SECTION "ROM0_0150", ROM0[$0150]
-u8_mul_entry:: jp u8_mul
-u8_div_entry:: jp u8_div
+u8_mul_entry:: jp u8_mul_u8
+u8_div_entry:: jp u8_div_u8
 u16_sub_entry:: jp u16_sub
 u16_cmp_entry:: jp u16_cmp
 

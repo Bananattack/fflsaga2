@@ -9,7 +9,7 @@ reset::
 ; Result:
 ; hl = 16-bit product.
 SECTION "ROM0_02F0", ROM0[$02F0]
-u8_mul::
+u8_mul_u8::
     push af
     push bc
     ld b, $08
@@ -39,7 +39,7 @@ u8_mul::
 ; h = quotient
 ; l = remainder 
 SECTION "ROM0_306", ROM0[$0306]
-u8_div::
+u8_div_u8::
     push af
     push bc
     ld a, l
@@ -75,7 +75,7 @@ u8_div::
 ; de = low bits of 32-bit product
 ; hl = high bits of 32-bit product
 SECTION "ROM0_0321", ROM0[$0321]
-u16_mul::
+u16_mul_u16::
     push af
     push bc
     ld c, l
@@ -298,8 +298,15 @@ _u24_subtract_end::
     ldh a, [$FF90]
     ret
 
+; Arguments:
+; de = pointer to 24-bit left-hand side / 32-bit dest (4 bytes)
+; a = 8-bit right-hand side
+; 
+; Result:
+; - Performs a 24-bit x 8-bit -> 32-bit multiplication.
+; - The 32-bit result is written at the 24-bit value's address.
 SECTION "ROM0_03DC", ROM0[$03DC]
-routine_03DC::
+u24_mul_u8::
     push af
     push bc
     push de
@@ -418,7 +425,7 @@ routine_043E::
     ld a, h
     jr z, .skip
     inc l
-    call u8_div
+    call u8_div_u8
     ld a, l
 .skip
     add e
@@ -712,7 +719,7 @@ routine_0550::
     ldh a, [$FF90]
     ld l, a
     ld h, $0A
-    call u8_mul
+    call u8_mul_u8
     ld de, $6F80
     add hl, de
     push hl
@@ -1728,7 +1735,7 @@ routine_0A5C::
     ld l, a
     ld a, [$C798]
     ld h, a
-    call u8_mul
+    call u8_mul_u8
     add hl, bc
     ld a, [$C799]
     and a
@@ -2129,7 +2136,7 @@ routine_0C8C::
     call a_times_16
     ld l, a
     ld h, $15
-    call u8_mul
+    call u8_mul_u8
     add hl, bc
     ld bc, $A000
     add hl, bc
