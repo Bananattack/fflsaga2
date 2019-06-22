@@ -67,8 +67,15 @@ u8_div::
     pop af
     ret
 
+; Arguments:
+; de = left-hand side
+; hl = right-hand side
+;
+; Result:
+; de = low bits of 32-bit product
+; hl = high bits of 32-bit product
 SECTION "ROM0_0321", ROM0[$0321]
-routine_0321::
+u16_mul::
     push af
     push bc
     ld c, l
