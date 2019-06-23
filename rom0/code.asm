@@ -3522,7 +3522,7 @@ routine_1334::
     ld de, $1469
     call u24_cmp
     jr nc, .skip
-    ld hl, $1469
+    ld hl, table_1469
 .skip
     ld de, $C70A
     ld b, $03
@@ -3530,7 +3530,7 @@ routine_1334::
     call memcpy8
     pop de
     ld bc, $C785
-    ld hl, $145A
+    ld hl, table_145A
     ld a, $05
 .outer_loop
     ldh [$FF92],a
@@ -3688,13 +3688,42 @@ script_instruction_jump_table::
     DW routine_0FAE
     DW routine_0C9E
     DW routine_0C27
-    DW $146C
+    DW routine_146C
     DW routine_0C21
     DW routine_0C1B
     DW routine_0C0F
-SECTION "ROM0_145A", ROM0[$145A]
 
-; ...
+SECTION "ROM0_145A", ROM0[$145A]
+table_145A::
+    DB $A0, $86, $01, $10, $27, $00, $E8, $03, $00, $64, $00, $00, $0A, $00, $00
+
+SECTION "ROM0_1469", ROM0[$1469]
+table_1469::
+    DB $3F, $42, $0F
+
+SECTION "ROM0_146C", ROM0[$146C]
+routine_146C::
+    ld  a, $03
+    ld  [$C765], a
+    ld  a, $04
+    ld  [$C31B], a
+    ret
+
+SECTION "ROM0_1477", ROM0[$1477]
+routine_1477::
+    call routine_14CA
+    call wait_button_release
+    ld e, $12
+    rst rst_call_908
+.loop
+    call routine_18BC
+    cp a, $FF
+    jr z, .loop
+    call wait_button_release
+    push af
+    call routine_14FF
+    pop af
+    ret  
 
 SECTION "ROM0_1490", ROM0[$1490]
 routine_1490::
