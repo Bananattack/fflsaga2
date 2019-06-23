@@ -3703,10 +3703,10 @@ table_1469::
 
 SECTION "ROM0_146C", ROM0[$146C]
 routine_146C::
-    ld  a, $03
-    ld  [$C765], a
-    ld  a, $04
-    ld  [$C31B], a
+    ld a, $03
+    ld [$C765], a
+    ld a, $04
+    ld [$C31B], a
     ret
 
 SECTION "ROM0_1477", ROM0[$1477]
