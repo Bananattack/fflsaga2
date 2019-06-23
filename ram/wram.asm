@@ -76,6 +76,10 @@ vram_transfer_stat_dispatcher_old:: DS 3
 SECTION "WRAM0_C4FF", WRAM0[$C4FF]
 map_oam_animation_timer:: DS 1
 
+; The metatile index associated with a specific door.
+SECTION "WRAM0_C500", WRAM0[$C500]
+map_door_tiles:: DS 32
+
 ; The types of every metatile in the currently loaded tileset.
 SECTION "WRAM0_C520", WRAM0[$C520]
 map_tileset_types:: DS 32

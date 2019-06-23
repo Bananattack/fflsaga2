@@ -4639,10 +4639,10 @@ SECTION "ROM0_18F5", ROM0[$18F5]
 SECTION "ROM0_1900", ROM0[$1900]
 routine_1900: jp routine_19D6
 routine_1903: jp load_game
-routine_1906: jp $388C
-routine_1909: jp $333C
-routine_190C: jp $3232
-routine_190F: jp $2B14
+routine_1906: jp routine_388C
+routine_1909: jp routine_333C
+routine_190C: jp routine_3232
+routine_190F: jp routine_2B14
 routine_1912: jp routine_194B
 routine_1915: jp routine_1B5F
 routine_1918: jp routine_1B99
@@ -4758,9 +4758,9 @@ routine_19F1::
     call routine_1A7B
     call routine_1F23
     call routine_1E21
-    call $338A
+    call load_npc_graphics
     call routine_1D5C
-    call $32D8
+    call routine_32D8
     ld a, [$C466]
     or a
     jr z, .skip
@@ -4771,8 +4771,8 @@ routine_19F1::
     ld a, [$C33F]
     ld [$C43B], a
 .skip
-    call $20C8
-    call $3EA2
+    call map_tilemap_reset_screen
+    call fade_in
     ; fallthrough
 SECTION "ROM0_1A43", ROM0[$1A43]
 routine_1A43::
@@ -4789,13 +4789,13 @@ routine_1A43::
     cp a, $07
     jp c, routine_1AD9
 .skip
-    call $3039
-    call $26D5
-    call $2FBF
+    call map_handle_buttons
+    call routine_26D5
+    call routine_2FBF
 .skip2
-    call $3249
-    call $344B
-    call $391D
+    call routine_3249
+    call routine_344B
+    call routine_391D
     jr .loop
 
 SECTION "ROM0_1A71", ROM0[$1A71]
@@ -4882,7 +4882,7 @@ routine_1AEC::
     ; fallthrough
 SECTION "ROM0_1AEF", ROM0[$1AEF]
 routine_1AEF::
-    call $3E5B
+    call fade_out
     ld a, [$C305]
     ld [$C463], a
     and a,$0F
@@ -4899,13 +4899,13 @@ routine_1AEF::
     ld a, [$C450]
     call map_load_tileset_types
     call routine_1F23
-    call $338A
+    call load_npc_graphics
     call routine_1D5C
 .skip
     call routine_1E21
-    call $32D8
-    call $20C8
-    call $3E4C
+    call routine_32D8
+    call map_tilemap_reset_screen
+    call routine_3E4C
     ld a,[$C463]
     ld [$C305],a
     ret 
@@ -5670,13 +5670,13 @@ map_load_tileset_graphics::
 
 SECTION "ROM_1FA4", ROM0[$1FA4]
 routine_1FA4::
-    call $2F7F
+    call routine_2F7F
     rst rst_wait_vblank
     call routine_1A97
     ; fallthrough
 SECTION "ROM_1FAB", ROM0[$1FAB]
 routine_1FAB::
-    call $21EA
+    call routine_21EA
     ld c, $C1
     ld a, [$C43E]
     ld b, a
@@ -5718,9 +5718,8 @@ routine_1FAB::
     ld [$C43E], a
     xor a
     ld [$C437], a
-    ret  
+    ret
 
-; Sets up some vars and jumps to $2007 + e
 SECTION "ROM_1FEA", ROM0[$1FEA]
 routine_1FEA::
     ; hl = table_2007 + (a * 2)
@@ -5747,10 +5746,10 @@ routine_1FEA::
 
 SECTION "ROM_2007", ROM0[$2007]
 table_2007::
-    DW $2033
-    DW $200F
-    DW $2062
-    DW $2089
+    DW routine_2033
+    DW routine_200F
+    DW routine_2062
+    DW routine_2089
 
 ; ??? maybe this isn't a routine, it's a jump table?
 ; previous code loads 2007 and then jumps to somewhere off that.
@@ -5872,14 +5871,47 @@ routine_2089::
 ; [map_scroll_dest_address_h], [map_scroll_dest_address_l] = $9800
 ; Afterwards, the first screen of the map is loaded.
 SECTION "ROM_20C8", ROM0[$20C8]
-map_tilemap_reset_camera_load_screen::
-; ...
+map_tilemap_reset_screen::
+    ld hl, $C449
+    ld [hl], $00
+    inc hl
+    ld [hl], $98
+    xor a
+    ldh [$FFC1], a
+    ld a, $08
+    ldh [$FFC2], a
+    call map_tilemap_load_screen
+    ret  
 
 ; Loads a screen of tiles at the given scroll destination address in VRAM,
 ; Using the current camera position
 SECTION "ROM_20DB", ROM0[$20DB]
 map_tilemap_load_screen::
-; ...
+    ld a, [map_scroll_dest_address_l]
+    ld l, a
+    ld a, [map_scroll_dest_address_h]
+    ld h, a
+    ld a, [map_player_y]
+    ld b, a
+    ld a, $09
+.loop
+    push af
+    push hl
+    ld a, [map_player_x]
+    ld c, a
+    call map_tilemap_prepare_row
+    call map_tilemap_copy_row
+    pop hl
+    ld de, $0040
+    add hl, de
+    ld a, h
+    and a, $FB
+    ld h, a
+    pop af
+    inc b
+    dec a
+    jr nz, .loop
+    ret
 
 ; Arguments:
 ; c = tilemap x
@@ -5888,7 +5920,38 @@ map_tilemap_load_screen::
 ; [map_tilemap_buffer] contains unpacked column data
 SECTION "ROM_2104", ROM0[$2104]
 map_tilemap_prepare_row::
-; ...
+    push hl
+    ld hl, map_tilemap_buffer
+    ld a, $0B
+.loop
+    push af
+    ld a, b
+    or c
+    and a, $C0
+    jr nz, .else
+    push bc
+    call map_read_metatile
+    pop bc
+    jr .done
+.else
+    xor a
+.done
+    call map_convert_metatile_index
+    add a
+    add a
+    ldi [hl], a
+    inc a
+    ldi [hl], a
+    inc a
+    ldi [hl], a
+    inc a
+    ldi [hl], a
+    pop af
+    inc c
+    dec a
+    jr nz, .loop
+    pop hl
+    ret
 
 ; Arguments:
 ; c = tilemap x
@@ -5897,15 +5960,39 @@ map_tilemap_prepare_row::
 ; [map_tilemap_buffer] contains unpacked column data
 SECTION "ROM_212C", ROM0[$212C]
 map_tilemap_prepare_column::
-; ...
-
-; Arguments:
-; a = original tile index
-; Result:
-; a = remapped tile index
-SECTION "ROM_21A0", ROM0[$21A0]
-map_remap_metatile_index::
-; ...
+    push hl
+    ld hl, map_tilemap_buffer
+    ld a, $09
+.loop
+    push af
+    ld a,c
+    or b
+    and a, $C0
+    jr nz, $2140
+    push bc
+    call map_read_metatile
+    pop bc
+    jr .done
+.else
+    xor a
+.done
+    call map_convert_metatile_index
+    add a
+    add a
+    ldi [hl], a
+    inc a
+    ldi [hl], a
+    inc a
+    ldi [hl], a
+    inc a
+    ldi [hl], a
+    inc a
+    pop af
+    inc b
+    dec a
+    jr nz, .loop
+    pop hl
+    ret
 
 ; Arguments:
 ; - hl = tilemap VRAM dest (top-left corner)
@@ -5913,7 +6000,31 @@ map_remap_metatile_index::
 ;   (top-left, top-right, bottom-left, bottom-right, ...)
 SECTION "ROM_2155", ROM0[$2155]
 map_tilemap_copy_row::
-; ...
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    ld de, map_tilemap_buffer
+.loop
+    ld a, [de]
+    ldi [hl], a
+    inc e
+    ld a, [de]
+    ldd [hl], a
+    inc e
+    set 5, l
+    ld a, [de]
+    ldi [hl], a
+    inc e
+    ld a, [de]
+    ld [hl], a
+    inc e
+    res 5, l
+    inc l
+    res 5, l
+    ld a, e
+    cp a, $2C
+    jr c, .loop
+    ret
 
 ; Arguments:
 ; - hl = tilemap VRAM dest (top-left corner)
@@ -5921,6 +6032,73 @@ map_tilemap_copy_row::
 ;   (Byte order:top-left, top-right, bottom-left, bottom-right, ...)
 SECTION "ROM_2178", ROM0[$2178]
 map_tilemap_copy_column::
+    push bc
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    ld bc, map_tilemap_buffer
+.loop
+    ld a, [bc]
+    ldi [hl], a
+    inc c
+    ld a, [bc]
+    ldd [hl], a
+    inc c
+    set 5, l
+    ld a, [bc]
+    ldi [hl], a
+    inc c
+    ld a, [bc]
+    ldd [hl], a
+    inc c
+    ld de, $0020
+    add hl, de
+    ld a, h
+    and a, $FB
+    ld h, a
+    ld a, c
+    cp a, $24
+    jr c, .loop
+    pop bc
+    ret
+
+; Arguments:
+; a = original tile index
+; Result:
+; a = converted tile index
+SECTION "ROM_21A0", ROM0[$21A0]
+map_convert_metatile_index::
+    and a, $7F
+    cp a, $40
+    jr nc, .convert_door
+    ld e, a
+    ld a, [$C43C]
+    xor e
+    cp a, $20
+    ret c
+    ld a, [$C43C]
+    swap a
+    dec a
+    cp a, $01
+    ret z
+    ld a, $02
+    ret
+.convert_door
+    ; de = $C500 .. C51F
+    and a, $1F
+    ld e, a
+    ld d, $C5
+    ld a, [de]
+    jr map_convert_metatile_index
+
+SECTION "ROM_21C2", ROM0[$21C2]
+routine_21C2::
+; ...
+
+SECTION "ROM_21EA", ROM0[$21EA]
+routine_21EA::
+; ...
+
 ; ...
 
 ; Calculates a metatile map address and reads the tile at that location.
@@ -5940,11 +6118,19 @@ SECTION "ROM0_28A8", ROM0[$28A8]
 exit_character_creator_to_map_inner::
 ; ...
 
+SECTION "ROM0_26D5", ROM0[$26D5]
+routine_26D5::
+; ...
+
 ; c = pixel x
 ; b = pixel y
 ; de = metasprite data table seems to be around ROM1:$4000 or so? format unknown.
 SECTION "ROM_2A5D", ROM0[$2A5D]
 metasprite_draw::
+; ...
+
+SECTION "ROM0_2B14", ROM0[$2B14]
+routine_2B14::
 ; ...
 
 SECTION "ROM0_2B8A", ROM0[$2B8A]
@@ -6009,10 +6195,20 @@ SECTION "ROM0_2F43", ROM0[$2F43]
 stat_cross_wipe::
 ; ...
 
+SECTION "ROM0_2F7F", ROM0[$2F7F]
+routine_2F7F::
+; ...
+
+SECTION "ROM0_2FBF", ROM0[$2FBF]
+routine_2FBF::
+; ...
+
 SECTION "ROM0_3039", ROM0[$3039]
 map_handle_buttons::
 ; ...
-
+SECTION "ROM0_304E", ROM0[$304E]
+map_pressed_a::
+; ...
 SECTION "ROM0_31C5", ROM0[$31C5]
 map_pressed_select::
 ; ...
@@ -6022,16 +6218,45 @@ map_pressed_start::
 SECTION "ROM0_322B", ROM0[$322B]
 map_pressed_b::
 ; ...
-SECTION "ROM0_304E", ROM0[$304E]
-map_pressed_a::
+
+SECTION "ROM0_3232", ROM0[$3232]
+routine_3232::
+; ...
+
+SECTION "ROM0_3249", ROM0[$3249]
+routine_3249::
+; ...
+
+SECTION "ROM0_32D8", ROM0[$32D8]
+routine_32D8::
+; ...
+
+SECTION "ROM0_333C", ROM0[$333C]
+routine_333C::
 ; ...
 
 SECTION "ROM0_$338A", ROM0[$338A]
 load_npc_graphics::
 ; ...
 
+SECTION "ROM0_344B", ROM0[$344B]
+routine_344B::
+; ...
+
+SECTION "ROM0_388C", ROM0[$388C]
+routine_388C::
+; ...
+
+SECTION "ROM0_391D", ROM0[$391D]
+routine_391D::
+; ...
+
+SECTION "ROM0_3E4C", ROM0[$3E4C]
+routine_3E4C::
+; ...
+
 ; Fades the screen out to white.
-SECTION "ROM0_3E58", ROM0[$3E5B]
+SECTION "ROM0_3E5B", ROM0[$3E5B]
 fade_out::
 ; ...
 
