@@ -5721,12 +5721,15 @@ routine_1FAB::
     ret  
 
 ; Sets up some vars and jumps to $2007 + e
-SECTION "ROM_1FEB", ROM0[$1FEB]
-routine_1FEB::
+SECTION "ROM_1FEA", ROM0[$1FEA]
+routine_1FEA::
+    ; hl = table_2007 + (a * 2)
+    add a
     ld e, a
     ld d, $00
-    ld hl, $2007
+    ld hl, table_2007
     add hl, de
+    ; de = [hl]
     ld e, [hl]
     inc hl
     ld d, [hl]
@@ -5742,23 +5745,22 @@ routine_1FEB::
     push de
     ret
 
+SECTION "ROM_2007", ROM0[$2007]
+table_2007::
+    DW $2033
+    DW $200F
+    DW $2062
+    DW $2089
+
 ; ??? maybe this isn't a routine, it's a jump table?
 ; previous code loads 2007 and then jumps to somewhere off that.
-SECTION "ROM_2007", ROM0[$2007]
-routine_2007::
-    inc sp
-    jr nz, .skip
-.loop
-    jr nz, $206E
-    jr nz, $1F97
-    jr nz, .loop
-    dec l
-    call nz, $EA3D
-    dec l
-    call nz, $1105
-    ret nz
-.skip
-    rst rst_infinite_loop
+SECTION "ROM_200F", ROM0[$200F]
+routine_200F::
+    ld a, [$C42D]
+    dec a
+    ld [$C42D], a
+    dec b
+    ld de, $FFC0
     add hl, de
     ld a, h
     and a, $FB
@@ -5773,6 +5775,7 @@ routine_2007::
     call routine_1FAB
     ret
 
+SECTION "ROM_2033", ROM0[$2033]
 routine_2033::
     ld a, [$C42D]
     inc a
@@ -5797,6 +5800,7 @@ routine_2033::
     call routine_1FAB
     ret 
 
+SECTION "ROM_2062", ROM0[$2062]
 routine_2062::
     ld a, [$C42C]
     dec a
@@ -5822,6 +5826,7 @@ routine_2062::
     call routine_1FAB
     ret
 
+SECTION "ROM_2089", ROM0[$2089]
 routine_2089::
     ld a, [$C42C]
     inc a
