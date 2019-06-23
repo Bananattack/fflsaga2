@@ -5673,6 +5673,9 @@ routine_1FA4::
     call $2F7F
     rst rst_wait_vblank
     call routine_1A97
+    ; fallthrough
+SECTION "ROM_1FAB", ROM0[$1FAB]
+routine_1FAB::
     call $21EA
     ld c, $C1
     ld a, [$C43E]
@@ -5717,7 +5720,148 @@ routine_1FA4::
     ld [$C437], a
     ret  
 
-; ...
+; Sets up some vars and jumps to $2007 + e
+SECTION "ROM_1FEB", ROM0[$1FEB]
+routine_1FEB::
+    ld e, a
+    ld d, $00
+    ld hl, $2007
+    add hl, de
+    ld e, [hl]
+    inc hl
+    ld d, [hl]
+    ld a, [$C449]
+    ld l, a
+    ld a, [$C44A]
+    ld h, a
+    ld a, [$C42D]
+    ld b, a
+    ld a, [$C42C]
+    ld c, a
+    ; jp de
+    push de
+    ret
+
+; ??? maybe this isn't a routine, it's a jump table?
+; previous code loads 2007 and then jumps to somewhere off that.
+SECTION "ROM_2007", ROM0[$2007]
+routine_2007::
+    inc sp
+    jr nz, .skip
+.loop
+    jr nz, $206E
+    jr nz, $1F97
+    jr nz, .loop
+    dec l
+    call nz, $EA3D
+    dec l
+    call nz, $1105
+    ret nz
+.skip
+    rst rst_infinite_loop
+    add hl, de
+    ld a, h
+    and a, $FB
+    or a, $08
+    ld h, a
+    ld a, l
+    ld [$C449], a
+    ld a, h
+    ld [$C44A], a
+    call map_tilemap_prepare_row
+    call map_tilemap_copy_row
+    call routine_1FAB
+    ret
+
+routine_2033::
+    ld a, [$C42D]
+    inc a
+    ld [$C42D],a
+    ld a, b
+    add a, $09
+    ld b, a
+    ld de, $0240
+    add hl, de
+    ld a, h
+    and a, $FB
+    ld h, a
+    call map_tilemap_prepare_row
+    call map_tilemap_copy_row
+    ld a, [$C449]
+    add a, $40
+    ld [$C449], a
+    ld a, [$C44A]
+    adc a, $00
+    and a, $FB
+    ld [$C44A], a
+    call routine_1FAB
+    ret 
+
+routine_2062::
+    ld a, [$C42C]
+    dec a
+    ld [$C42C],a
+    dec c
+    ld a, l
+    dec a
+    dec a
+    and a, $1F
+    push af
+    ld a, l
+    and a,$E0
+    ld l, a
+    pop af
+    or l
+    ld l, a
+    ld a, l
+    ld [$C449], a
+    ld a, h
+    ld [$C44A], a
+    call map_tilemap_prepare_column
+    call map_tilemap_copy_column
+    call routine_1FAB
+    ret
+
+routine_2089::
+    ld a, [$C42C]
+    inc a
+    ld [$C42C],a
+    ld a, c
+    add a, $0B
+    ld c, a
+    ld a, l
+    add a, $16
+    and a, $1F
+    push af
+    ld a, l
+    and a, $E0
+    ld l, a
+    pop af
+    or l
+    ld l, a
+    call map_tilemap_prepare_column
+    call map_tilemap_copy_column
+    ld a, [$C449]
+    ld l, a
+    ld a, [$C44A]
+    ld h, a
+    ld a, l
+    inc a
+    inc a
+    and a, $1F
+    push af
+    ld a, l
+    and a, $E0
+    ld l, a
+    pop af
+    or l
+    ld l, a
+    ld a, l
+    ld [$C449], a
+    ld a, h
+    ld [$C44A], a
+    call routine_1FAB
+    ret  
 
 ; Resets the scroll destination address to the top-left, and loads the screen.
 ; [map_scroll_dest_address_h], [map_scroll_dest_address_l] = $9800

@@ -101,7 +101,7 @@ rst_script_read_byte_::
 ; Loops infinitely, effectively crashing the program until a reset is performed.
 SECTION "ROM0_38", ROM0[$38]
 rst_infinite_loop_::
-    jp $0038
+    jp rst_infinite_loop_
     nop
     nop
     nop
