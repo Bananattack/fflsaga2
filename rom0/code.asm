@@ -5620,6 +5620,103 @@ routine_1F23::
 ; VRAM at $8800 is loaded is loaded with the tile graphics for each metatile in the tileset.
 SECTION "ROM0_1F55", ROM0[$1F55]
 map_load_tileset_graphics::
+    ld c, $00
+    srl a
+    rr c
+    srl a
+    rr c
+    srl a
+    rr c
+    ld b, a
+    ld hl, $7800
+    add hl, bc
+    ld a, $02
+    rst rst_bank_switch
+.wait_mid_vblank
+    ldh a, [$FF44]
+    cp a, 150
+    jr nz, .wait_mid_vblank
+
+    ld a, $43
+    ldh [$FF40], a
+    ld de, $9000
+    ld b, $20
+.loop
+    push bc
+    ld a, $07
+    call banked_load
+    inc hl
+    ld b,a
+    ld c, $00
+    srl b
+    rr c
+    srl b
+    rr c
+    push hl
+    ld hl, $4000
+    add hl, bc
+    ld b, $40
+    call memcpy8
+    pop hl
+    pop bc
+    dec b
+    jr nz, .loop
+
+    ld a, $C3
+    ldh [$FF40], a
+    xor a
+    ld [$C439], a
+    ret
+
+SECTION "ROM_1FA4", ROM0[$1FA4]
+routine_1FA4::
+    call $2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    call $21EA
+    ld c, $C1
+    ld a, [$C43E]
+    ld b, a
+    ld a, [$C43D]
+    dec a
+    jr z, .label1FD4
+    dec a
+    jr z, .label1FD0
+    dec a
+    jr z, .label1FC8
+    inc c
+    ld a, [$ff00+c]
+    add b
+    ld [$ff00+c], a
+    add a, $08
+    jr .label1FD9
+.label1FC8
+    inc c
+    ld a, [$ff00+c]
+    sub b
+    ld [$ff00+c], a
+    add a, $08
+    jr .label1FD9
+.label1FD0
+    ld a, [$ff00+c]
+    sub b
+    jr .label1FD8
+.label1FD4
+    ld a, [$ff00+c]
+    add b
+    jr .label1FD8
+.label1FD8
+    ld [$ff00+c], a
+.label1FD9
+    and a,$0F
+    ret nz
+    ld [$C43D], a
+    ld a, [$C43F]
+    ld [$C43E], a
+    xor a
+    ld [$C437], a
+    ret  
+
 ; ...
 
 ; Resets the scroll destination address to the top-left, and loads the screen.
