@@ -29,6 +29,11 @@ u24_div_u8_entry:: jp u24_div_u8
 
 ; ...
 
+SECTION "ROM0_0192", ROM0[$0192]
+routine_063E_entry:: jp routine_063E
+
+; ...
+
 SECTION "ROM0_01AA", ROM0[$01AA]
 bank_switch_entry:: jp bank_switch
 
