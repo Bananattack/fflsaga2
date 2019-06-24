@@ -428,7 +428,7 @@ vramcpy8::
 ; hl is advanced ahead by bc bytes.
 ; de is advanced ahead by bc bytes.
 SECTION "ROM0_00AC", ROM0[$00AC]
-vramcpy16::    
+vramcpy16::
     call vram_transfer_start
     call memcpy16
     ; fallthrough
