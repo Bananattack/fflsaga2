@@ -14,7 +14,9 @@ u24_cmp_entry:: jp u24_cmp
 
 ; ...
 
-SECTION "ROM0_016E", ROM0[$016E]
+
+SECTION "ROM0_016B", ROM0[$016B]
+routine_043E_entry:: jp routine_043E
 stat_handler_common_entry:: jp stat_handler_common
 joy_update_entry:: jp joy_update
 
