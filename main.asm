@@ -25,7 +25,7 @@ TEMP_OPERAND\@ EQUS STRSUB("\1", 2, STRLEN("\1") - 2)
         ENDC
 
 TEMP_OPERAND\@ EQUS STRSUB("\2", 2, STRLEN("\2") - 2)
-        DB $EA
+        DB $FA
         DW TEMP_OPERAND\@
     ENDC
 ENDM

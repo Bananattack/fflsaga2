@@ -9142,10 +9142,56 @@ routine_32D8::
 
 SECTION "ROM0_333C", ROM0[$333C]
 routine_333C::
-; ...
+    ld_abs a, [$FF88]
+    ld [$C467], a
+    ld hl, $D000
+.loop
+    ld a, [hl]
+    and a, $7F
+    ldi [hl], a
+    ld a, h
+    cp a, $E0
+    jr nz, .loop
+
+    ld a, [$C459]
+    ld l, a
+    ld a, [$C45A]
+    ld h, a
+    ld d, $81
+.loop2
+    ld a, $07
+    rst rst_bank_switch
+    ld a, d
+    cp a, $87
+    jr z, $3368
+    ldi a, [hl]
+    cp a, $FF
+    jr z, .done_loop2
+    inc d
+    jr .loop2
+.done_loop2
+    call routine_3397
+    call routine_32D8
+    call routine_344B
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    ld hl, $1A71
+    call routine_29B3
+    call map_read_metatile
+    ld a, [bc]
+    set 7, a
+    ld [bc], a
+    ld a, [$C467]
+    rst rst_bank_switch
+    ret
 
 SECTION "ROM0_338A", ROM0[$338A]
 load_npc_graphics::
+; ...
+
+SECTION "ROM0_3397", ROM0[$3397]
+routine_3397::
 ; ...
 
 SECTION "ROM0_344B", ROM0[$344B]
