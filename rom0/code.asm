@@ -126,7 +126,7 @@ reset::
     ld b, $04
     ld a, $FF
     call memset8
-    ld  a, $1C
+    ld a, $1C
     rst rst_hl_plus_a
     dec c
     jr nz, .loop2
@@ -606,29 +606,35 @@ joy_update::
     ld [joy_repeat_mask], a
     ret
 
+; Updates joy and updates OAM.
+; Result:
+; a = [joy_pressed_mask]
 SECTION "ROM0_0494", ROM0[$0494]
-routine_0494::
+joy_update_oam_update::
     call joy_update
-    call transfer_current_oam
+    call oam_transfer
     ldh a, [joy_pressed_mask]
     ret
 
+; Waits until all joypad buttons are released.
 SECTION "ROM0_049D", ROM0[$049D]
-routine_049D::
+joy_wait_release::
     push af
 .loop
     rst rst_wait_vblank
-    ldh a, [$FF89]
+    ldh a, [joy_held_mask]
     and a
     jr nz, .loop
     pop af
     ret
 
+; Waits until all joypad buttons are released.
+; Updates the OAM while it waits.
 SECTION "ROM0_04A6", ROM0[$04A6]
-wait_button_release::
+joy_wait_release_oam_update::
     push af
 .loop
-    call transfer_current_oam
+    call oam_transfer
     ldh a, [joy_held_mask]
     and a
     jr nz, .loop
@@ -654,7 +660,6 @@ bank_switch::
     ld a, b
     pop bc
     ret
-
 
 ; Calls a subroutine in another bank.
 ;
@@ -1116,13 +1121,13 @@ routine_0679::
 ; Arguments:
 ; [map_oam_table_address] = map oam source
 SECTION "ROM0_068A", ROM0[$068A]
-transfer_map_oam::
+map_oam_transfer::
     ld a, [map_oam_table_address]
     rst rst_oam_dma_transfer
     ret
 
 SECTION "ROM0_068F", ROM0[$068F]
-transfer_current_oam::
+oam_transfer::
     push af
     push bc
     rst rst_wait_vblank
@@ -1331,7 +1336,7 @@ routine_075E::
     ldh a, [$FFA0]
     cp a, $05
     jr z, .skip3
-    call transfer_current_oam
+    call oam_transfer
 .skip3
     pop af
     ret
@@ -1605,7 +1610,7 @@ routine_08D6::
     jr z, .skip3
     inc b
 .skip3
-    call transfer_current_oam
+    call oam_transfer
     dec b
     jr nz, .loop
     ret
@@ -1934,8 +1939,8 @@ routine_0AC2::
     jr z, .skip
     ld hl, $D000
 .skip
-    call routine_0AF3
-    call transfer_current_oam
+    call copy_tilemap_data
+    call oam_transfer
     ld a, [$C7A5]
     ldh [$FF4A], a
     ld a, $07
@@ -1957,13 +1962,18 @@ routine_0AE2::
     rst rst_hl_plus_a
     ret
 
+; hl = source tilemap data (row-major tilemap data)
+; de = destination in VRAM.
+; b = width to copy (bytes per row)
+; c = height to copy (row count)
 SECTION "ROM0_0AF3", ROM0[$0AF3]
-routine_0AF3::
+copy_tilemap_data::
     call vram_transfer_start
 .loop
     push bc
     call memcpy8
     pop bc
+    ; dest += 20 - width
     ld a, $20
     sub b
     add e
@@ -1999,7 +2009,7 @@ routine_0B0F::
     and a
     jr z, .skip
     call routine_0CA9
-    call wait_button_release
+    call joy_wait_release_oam_update
     call routine_0E5C
 .skip
     pop hl
@@ -2311,27 +2321,27 @@ routine_0C9E::
 
 SECTION "ROM0_0CA9", ROM0[$0CA9]
 routine_0CA9::
-    call wait_button_release
+    call joy_wait_release_oam_update
 .loop
-    call transfer_current_oam
+    call oam_transfer
     call joy_update
     ldh a, [$FF8A]
     and a
     jr z, .loop
-    jp wait_button_release
+    jp joy_wait_release_oam_update
 
 SECTION "ROM0_0CBA", ROM0[$0CBA]
 routine_0CBA::
     call routine_1909
-    jp transfer_current_oam
+    jp oam_transfer
 
 SECTION "ROM0_0CC0", ROM0[$0CC0]
 routine_0CC0::
     rst rst_script_read_byte
     ld b, a
 .loop2
-    call transfer_current_oam
-    call transfer_current_oam
+    call oam_transfer
+    call oam_transfer
     dec b
     jr nz, .loop2
     ret
@@ -2608,7 +2618,7 @@ routine_0E30::
     call memclear8
     call routine_0546
 .skip
-    call transfer_current_oam
+    call oam_transfer
     call routine_0E72
 .done
     jp pop_hl_de_bc_af
@@ -2623,7 +2633,7 @@ routine_0E5C::
     ld [hl], a
     ld [$C7DE], a
     rst rst_wait_vblank
-    call transfer_map_oam
+    call map_oam_transfer
     ldh a, [$FF40]
     and a, $C3
     ldh [$FF40], a
@@ -3715,14 +3725,14 @@ routine_146C::
 SECTION "ROM0_1477", ROM0[$1477]
 routine_1477::
     call routine_14CA
-    call wait_button_release
+    call joy_wait_release_oam_update
     ld e, $12
     rst rst_call_908
 .loop
     call routine_18BC
     cp a, $FF
     jr z, .loop
-    call wait_button_release
+    call joy_wait_release_oam_update
     push af
     call routine_14FF
     pop af
@@ -4393,7 +4403,7 @@ routine_176C::
     ld e, a
 .skip17CF
     push hl
-    call routine_1869
+    call oam_set_position
     ld hl, $4200
     ldh a, [$FF95]
     bit 6, a
@@ -4460,7 +4470,7 @@ routine_176C::
     ld hl, $CC90
     xor a
     ldh [$FF95], a
-    ld c, $97
+    ld c, menu_cursor_y & $FF
     add a
     add c
     ld c, a
@@ -4470,18 +4480,18 @@ routine_176C::
     ld a, [$ff00+c]
     ld e, a
     inc a
-    jr nz, .else1844
+    jr nz, .should_draw_cursor
     ld b, $10
     call memclear8
-    jr .done185A
-.else1844
+    jr .done_draw_cursor
+.should_draw_cursor
     call d_times_8_e_times_8
     push hl
-    call routine_1869
+    call oam_set_position
     pop hl
     ld b, $04
     ld a, $78
-.loop1850
+.set_cursor_oam_tile_attr
     inc hl
     inc hl
     ldi [hl], a
@@ -4489,8 +4499,8 @@ routine_176C::
     ld [hl], $00
     inc hl
     dec b
-    jr nz, .loop1850
-.done185A::
+    jr nz, .set_cursor_oam_tile_attr
+.done_draw_cursor
     ld hl, $CC80
     ldh a, [$FF95]
     inc a
@@ -4500,7 +4510,12 @@ routine_176C::
     call bank_switch
     ret
 
-routine_1869::
+; oam_update_position
+; d = sprite y
+; e = sprite x
+; hl = pointer to OAM buffer entry.
+SECTION "ROM0_1869", ROM0[$1869]
+oam_set_position::
     push af
     push bc
     ld a, $04
@@ -4824,7 +4839,7 @@ SECTION "ROM0_1A97", ROM0[$1A97]
 routine_1A97::
     push hl
     push af
-    call transfer_map_oam_entry
+    call map_oam_transfer_entry
     ld a, [$C305]
     and a, $F0
     cp a, $10
@@ -7483,7 +7498,7 @@ routine_298A::
 
 SECTION "ROM0_29A3", ROM0[$29A3]
 routine_29A3::
-    ldh a, [$FF89]
+    ldh a, [joy_held_mask]
     ld b, $04
 .loop
     rlca 
@@ -7578,8 +7593,8 @@ routine_29E2::
     ld [$C43A], a
     ld a, [$C45B]
     or a
-    jr nz, metasprite_clear_first
-    call metasprite_draw
+    jr nz, oam_clear_first_metasprite
+    call oam_draw_metasprite
     ld a, [$C430]
     swap a
     ld c, a
@@ -7602,7 +7617,7 @@ routine_29E2::
     ret
 
 SECTION "ROM_2A4D", ROM0[$2A4D]
-metasprite_clear_first::
+oam_clear_first_metasprite::
     ld hl, $C000
     ld b, $10
     xor a
@@ -7619,7 +7634,7 @@ metasprite_clear_first::
 ; b = pixel y
 ; de = metasprite data table seems to be around ROM1:$4000 or so? format unknown.
 SECTION "ROM_2A5D", ROM0[$2A5D]
-metasprite_draw::
+oam_draw_metasprite::
     push hl
 .loop
     xor a
@@ -8681,7 +8696,7 @@ map_pressed_a::
     cp a, $04
     jr z, routine_30FB
     cp a, $F0
-    jr nz, $30D1
+    jr nz, routine_30D1
     ld a, c
     and a, $F8
     cp a, $08
@@ -9169,7 +9184,7 @@ routine_333C::
     rst rst_bank_switch
     ld a, d
     cp a, $87
-    jr z, $3368
+    jr z, .done_loop2
     ldi a, [hl]
     cp a, $FF
     jr z, .done_loop2
@@ -9413,7 +9428,7 @@ routine_3460::
     ld l, a
     ld h, $C0
     push hl
-    call metasprite_draw
+    call oam_draw_metasprite
     ld a, [$C47F]
     add a, $10
     ld [$C47F], a
@@ -9825,7 +9840,7 @@ routine_367B::
     ld l, a
     ld h, $C0
     push hl
-    call metasprite_draw
+    call oam_draw_metasprite
     pop de
     pop hl
     ld c,[hl]
@@ -10497,6 +10512,7 @@ routine_3A60::
     ld [$C305], a
     jp routine_3C93
 
+SECTION "ROM0_3A96", ROM0[$3A96]
 routine_3A96::
     ld a, [$C305]
     and a, $0F

@@ -4,6 +4,66 @@ map_oam_buffer0:: DS 160
 SECTION "WRAM0_C100", WRAM0[$C100]
 map_oam_buffer1:: DS 160
 
+ITEM_STRUCT: MACRO
+\1_type:: DS 1
+\1_uses:: DS 1
+ENDM
+
+PLAYER_EQUIP_COUNT EQU 8
+PLAYER_STRUCT: MACRO
+\1_name:: DS 4
+\1_class:: DS 1
+\1_unknown:: DS 1
+\1_max_hp:: DS 2
+\1_hp:: DS 2
+\1_str:: DS 1
+\1_agl:: DS 1
+\1_mana:: DS 1
+\1_def:: DS 1
+\1_equip_0:: ITEM_STRUCT \1_equip_0
+\1_equip_1:: ITEM_STRUCT \1_equip_1
+\1_equip_2:: ITEM_STRUCT \1_equip_2
+\1_equip_3:: ITEM_STRUCT \1_equip_3
+\1_equip_4:: ITEM_STRUCT \1_equip_4
+\1_equip_5:: ITEM_STRUCT \1_equip_5
+\1_equip_6:: ITEM_STRUCT \1_equip_6
+\1_equip_7:: ITEM_STRUCT \1_equip_7
+\1_padding:: DS 1
+ENDM
+
+SECTION "WRAM0_C200", WRAM0[$C200]
+party_members::
+party_member_0:: PLAYER_STRUCT party_member_0
+SECTION "WRAM0_C220", WRAM0[$C220]
+party_member_1:: PLAYER_STRUCT party_member_1
+SECTION "WRAM0_C240", WRAM0[$C240]
+party_member_2:: PLAYER_STRUCT party_member_2
+SECTION "WRAM0_C260", WRAM0[$C260]
+party_member_3:: PLAYER_STRUCT party_member_3
+SECTION "WRAM0_C280", WRAM0[$C280]
+party_member_4:: PLAYER_STRUCT party_member_4
+
+INVENTORY_ITEM_COUNT EQU 16
+
+SECTION "WRAM0_C2D9", WRAM0[$C2D9]
+item_slots::
+item_slot_0:: ITEM_STRUCT item_slot_0
+item_slot_1:: ITEM_STRUCT item_slot_1
+item_slot_2:: ITEM_STRUCT item_slot_2
+item_slot_3:: ITEM_STRUCT item_slot_3
+item_slot_4:: ITEM_STRUCT item_slot_4
+item_slot_5:: ITEM_STRUCT item_slot_5
+item_slot_6:: ITEM_STRUCT item_slot_6
+item_slot_7:: ITEM_STRUCT item_slot_7
+item_slot_8:: ITEM_STRUCT item_slot_8
+item_slot_9:: ITEM_STRUCT item_slot_9
+item_slot_A:: ITEM_STRUCT item_slot_A
+item_slot_B:: ITEM_STRUCT item_slot_B
+item_slot_C:: ITEM_STRUCT item_slot_C
+item_slot_D:: ITEM_STRUCT item_slot_D
+item_slot_E:: ITEM_STRUCT item_slot_E
+item_slot_F:: ITEM_STRUCT item_slot_F
+
 ; A routine that does:
 ;
 ; ld sp, $NNNN

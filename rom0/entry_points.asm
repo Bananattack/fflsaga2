@@ -23,7 +23,7 @@ stat_handler_common_entry:: jp stat_handler_common
 SECTION "ROM0_0171", ROM0[$0171]
 joy_update_entry:: jp joy_update
 SECTION "ROM0_0174", ROM0[$0174]
-routine_049D_entry:: jp routine_049D
+joy_wait_release_entry:: jp joy_wait_release
 SECTION "ROM0_0177", ROM0[$0177]
 vram_transfer_start_entry:: jp vram_transfer_start
 SECTION "ROM0_017A", ROM0[$017A]
@@ -35,7 +35,7 @@ u24_mul_u8_entry:: jp u24_mul_u8
 SECTION "ROM0_0183", ROM0[$0183]
 u24_div_u8_entry:: jp u24_div_u8
 SECTION "ROM0_0186", ROM0[$0186]
-routine_0AF3_entry:: jp routine_0AF3
+copy_tilemap_data_entry:: jp copy_tilemap_data
 SECTION "ROM0_0189", ROM0[$0189]
 routine_166B_entry:: jp routine_166B
 SECTION "ROM0_018C", ROM0[$018C]
@@ -57,7 +57,7 @@ routine_1884_entry:: jp routine_1884
 SECTION "ROM0_01A4", ROM0[$01A4]
 routine_188B_entry:: jp routine_188B
 SECTION "ROM0_01A7", ROM0[$01A7]
-routine_0494_entry:: jp routine_0494
+joy_update_oam_update_entry:: jp joy_update_oam_update
 SECTION "ROM0_01AA", ROM0[$01AA]
 bank_switch_entry:: jp bank_switch
 SECTION "ROM0_01AD", ROM0[$01AD]
@@ -103,7 +103,7 @@ routine_066E_entry:: jp routine_066E
 SECTION "ROM0_01E9", ROM0[$01E9]
 routine_14AC_entry:: jp routine_14AC
 SECTION "ROM0_01EC", ROM0[$01EC]
-transfer_map_oam_entry:: jp transfer_map_oam
+map_oam_transfer_entry:: jp map_oam_transfer
 SECTION "ROM0_01EF", ROM0[$01EF]
 routine_0550_entry:: jp routine_0550
 SECTION "ROM0_01F2", ROM0[$01F2]

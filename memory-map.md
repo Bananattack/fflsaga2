@@ -4,9 +4,9 @@ Final Fantasy Legend II Memory Map
 Cartridge
 ---------
 
-- Mapper: MBC2.
+- Mapper: MBC1
 - ROM: 256 KiB (16 banks of 16 KiB each).
-- RAM: 512 nybbles of battery-backed save RAM.
+- RAM: 8 KiB of battery-backed save RAM.
 - GBC Support: No.
 - SGB Support: No.
 
@@ -35,10 +35,3 @@ TODO
 - Bank `$D` (`ROMD:$4000 .. ROMD:$7FFF`):
 - Bank `$E` (`ROME:$4000 .. ROME:$7FFF`):
 - Bank `$F` (`ROMF:$4000 .. ROMF:$7FFF`):
-
-RAM
----
-
-TODO
-
-- `$C450` - current tileset
