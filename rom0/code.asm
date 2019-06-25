@@ -5457,6 +5457,9 @@ routine_1E21::
     ld [$C437], a
     ld [$C43D], a
     ld [$C438], a
+    ; fallthrough
+SECTION "ROM0_1E6C", ROM0[$1E6C]
+routine_1E6C::
     ld hl, $1A71
     call routine_29B3
     call map_read_metatile
@@ -10336,74 +10339,1021 @@ routine_3998::
 
 SECTION "ROM0_39AE", ROM0[$39AE]
 routine_39AE::
+    call routine_1AEC
+    jp routine_3C93
 
 SECTION "ROM0_39B4", ROM0[$39B4]
 routine_39B4::
+    ld e, c
+    ld d, b
+    call routine_14AC_entry
+    jp routine_3C93
 
 SECTION "ROM0_39BC", ROM0[$39BC]
 routine_39BC::
+    call routine_1D0D
+    call routine_1AE7
+    jp routine_3C93
 
 SECTION "ROM0_39C5", ROM0[$39C5]
 routine_39C5::
-
+    ld a, [$C444]
+    swap a
+    and a, $F0
+    add a, $05
+    ld l, a
+    ld h, $C6
+    ld a, [hl]
+    ld b, a
+    and a, $0F
+    cp a, $03
+    jr z, routine_39E4
+    ld a, b
+    and a, $CF
+    ld b, a
+    ld a, c
+    and a, $03
+    swap a
+    ; fallthrough
 SECTION "ROM0_39E2", ROM0[$39E2]
 routine_39E2::
-
+    or b
+    ld [hl], a
+    ; fallthrough
 SECTION "ROM0_39E4", ROM0[$39E4]
 routine_39E4::
+    ld a, c
+    and a, $F0
+    swap a
+    ld b, a
+    ld a, [$C444]
+    swap a
+    and a, $F0
+    add a, $04
+    ld l, a
+    ld h, $C6
+    ld [hl], b
+    inc l
+    ld a, [hl]
+    and a, $3F
+    ld b, a
+    ld a, c
+    and a, $03
+    rrca 
+    rrca 
+    or b
+    ld [hl], a
+    jp routine_3C93
 
 SECTION "ROM0_3A06", ROM0[$3A06]
 routine_3A06::
+    ld a,[$C435]
+    or a
+    jp nz, routine_3CA0
+    ld e, $08
+    ld a, c
+    and a, $03
+    ld [$C436], a
+    jp routine_3A3C
 
 SECTION "ROM0_3A18", ROM0[$3A18]
 routine_3A18::
+    ld a,[$C435]
+    or a
+    jp nz, routine_3CA0
+    ld e, $08
+    jp routine_3A3C
 
 SECTION "ROM0_3A24", ROM0[$3A24]
 routine_3A24::
-
+    ld a, [$C435]
+    or a
+    jp nz, routine_3CA0
+    ld a, c
+    and a, $03
+    ld [$C436], a
+    jr routine_3A3A
 SECTION "ROM0_3A33", ROM0[$3A33]
-routine_3A33::
+routine_3A33::    
+    ld a, [$C435]
+    or a
+    jp nz, routine_3CA0
+    ; fallthrough
+SECTION "ROM0_3A3A", ROM0[$3A3A]
+routine_3A3A::
+    ld e, $00
+    ; fallthrough
+SECTION "ROM0_3A3C", ROM0[$3A3C]
+routine_3A3C::
+    ld a, [$C436]
+    push de
+    push bc
+    call routine_29E2
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    pop bc
+    pop de
+    ld a, c
+    and a, $03
+    inc a
+    ld b, a
+    ld a, c
+    and a, $F0
+    jp z, routine_3C93
+    or b
+    or e
+    ld [$C435], a
+    jp routine_3CAB
 
 SECTION "ROM0_3A60", ROM0[$3A60]
 routine_3A60::
+    ld a, b
+    cp a, $04
+    jp nc, routine_3C93
+    ld d, b
+    ld e, c
+    ld a, [$C305]
+    ld [$C465], a
+    and a, $0F
+    ld [$C305], a
+    call set_default_stat_handler
+    rst rst_call_800
+    ld a, [$C305]
+    and a, $F0
+    cp a, $30
+    jr z, routine_3A96
+    or a
+    jp nz, routine_3C93
+    ld a, [$C305]
+    and a, $0F
+    ld b, a
+    ld a, [$C465]
+    and a, $F0
+    or b
+    ld [$C305], a
+    jp routine_3C93
+
+routine_3A96::
+    ld a, [$C305]
+    and a, $0F
+    ld [$C305],a
+    jp routine_3C93
 
 SECTION "ROM0_3AA1", ROM0[$3AA1]
 routine_3AA1::
+    ld a, c
+    cp a, $04
+    jp c, routine_3B2E
+    cp a, $04
+    jp z, routine_3CA8
+    cp a, $05
+    jp z, routine_3B6F
+    cp a, $06
+    jp z, routine_3C93
+    cp a, $07
+    jp z, routine_3C93
+    cp a, $0C
+    jp z, routine_3D98
+    cp a, $0D
+    jp z, routine_3B1F
+    cp a, $0E
+    jp z, routine_3E46
+    cp a, $0F
+    jp z, routine_3E9C
+    cp a, $10
+    jp z, routine_3E3B
+    cp a, $11
+    jp z, routine_3E96
+    cp a, $12
+    jp z, routine_3F87
+    cp a, $13
+    jp z, routine_3E2F
+    cp a, $14
+    jp z, routine_3E35
+    cp a, $15
+    jp z, routine_3B04
+    cp a, $16
+    jp z, routine_3B12
+    cp a, $17
+    jp z, routine_3FBF
+    cp a, $18
+    jp z, routine_3FD0
+    cp a, $0C
+    jp c, routine_3C3F
+    jp routine_3C93
+
+SECTION "ROM0_3B04", ROM0[$3B04]
+routine_3B04::
+    ld a, $01
+    ld [$C45B], a
+    ld a, [$C436]
+    call routine_29E2
+    jp routine_3C93
+
+SECTION "ROM0_3B12", ROM0[$3B12]
+routine_3B12::
+    xor  a
+    ld [$C45B], a
+    ld a, [$C436]
+    call routine_29E2
+    jp routine_3C93
+
+SECTION "ROM0_3B1F", ROM0[$3B1F]
+routine_3B1F::
+    call routine_2232
+    call routine_1E6C
+    call map_tilemap_load_screen
+    call routine_32D8
+    jp routine_3C93
+
+SECTION "ROM0_3B2E", ROM0[$3B2E]
+routine_3B2E::
+    push af
+    xor a
+    ld [$C438], a
+    ld hl, $1A71
+    call routine_29B3
+    call map_read_metatile
+    ld  a, [bc]
+    res 7, a
+    ld  [bc], a
+    pop af
+    and a,$03
+    inc a
+    ld  [$C43D], a
+    dec a
+    call routine_1FEA
+    ld hl, $1A71
+    call routine_29B3
+    call map_read_metatile
+    ld  a, [bc]
+    set 7, a
+    ld [bc], a
+    jp routine_3CAB
 
 SECTION "ROM0_3B5B", ROM0[$3B5B]
 routine_3B5B::
+    ld a, b
+    and a, $F7
+    ld b, a
+    call routine_3934
+    ld a, [$C444]
+    ld [$C442], a
+    ld a, [$C445]
+    ld [$C443], a
+    ret
+
+SECTION "ROM0_3B6F", ROM0[$3B6F]
+routine_3B6F::
+    ld e, $1F
+    call routine_063E_entry
+    or a
+    jp z, routine_3C93
+    ld a, [$C436]
+    add a
+    add a, $73
+    ld l, a
+    ld h, $1A
+    call routine_29B3
+    ld a, c
+    or b
+    and a, $C0
+    jp nz, routine_3C93
+    call map_read_metatile
+    bit 7, a
+    jp nz, routine_3C93
+    call routine_2946
+    and a, $1F
+    add a, $20
+    ld c, a
+    ld b, $C5
+    ld a, [bc]
+    bit 7, a
+    jr z, .skip
+    bit 6,a
+    jr z, .skip2
+    bit 5,a
+    jp nz, routine_3C93
+    jr .skip2
+.skip
+    ld c, a
+    ld a, [$C434]
+    and c
+    jp nz, routine_3C93
+    ld a, c
+    and a, $03
+    cp a, $03
+    jp z, routine_3C93
+.skip2
+    ld e, $1F
+    call routine_063E_entry
+    dec a
+    and a, $0F
+    add a
+    add a
+    add a, $A9
+    ld l, a
+    ld h, $C2
+    ld a, [$C44B]
+    ldi [hl], a
+    ld a, [$C43F]
+    ld c, $00
+.loop
+    rrca 
+    jr c, .done_loop
+    inc c
+    jr .loop
+.done_loop
+    rrc c
+    rrc c
+    ld a, [$C44C]
+    or c
+    ldi [hl], a
+    ld a, [$C436]
+    rrca 
+    rrca 
+    ld b, a
+    ld a, [$C42E]
+    swap a
+    and a, $0F
+    ld c, a
+    ld a, [$C42C]
+    add c
+    or b
+    ldi [hl], a
+    ld a, [$C431]
+    rrca 
+    rrca 
+    ld b, a
+    ld a, [$C42F]
+    swap a
+    and a, $0F
+    ld c, a
+    ld a, [$C42D]
+    add c
+    or b
+    ld [hl], a
+    ld a, $01
+    ld [$C43E], a
+    ld [$C43F], a
+    xor a
+    ld [$C430], a
+    ld e, $1F
+    ld a, $00
+    call routine_064A_entry
+    call routine_1EC2
+    ld a, [$C436]
+    call routine_29E2
+    ld a, [$C436]
+    ld c, a
+    ld [$C442], a
+    ld a, $F0
+    ld b, a
+    ld [$C443], a
+    call routine_3934
+    call routine_1D5C
+    call routine_32D8
+    ret  
+
+SECTION "ROM0_3C3F", ROM0[$3C3F]
+routine_3C3F::
+    ld a, [$C446]
+    or a
+    jr z, .skip
+    ld l, a
+    ld h, $C6
+    set 7, [hl]
+.skip
+    xor a
+    ld [$C446], a
+    ld a, $01
+    ld [$C430], a
+    ld a, c
+    and a, $03
+    push af
+    inc a
+    ld e, $1F
+    call routine_064A_entry
+    pop bc
+    ld a, $04
+    sub b
+    ld b, $80
+.loop
+    rlc b
+    dec a
+    jr nz, .loop
+    ld a, b
+    ld [$C43E], a
+    ld [$C43F], a
+    ld a, $01
+    ld [$C431], a
+    ld a, $80
+    ld [$C432], a
+    ld a, $40
+    ld [$C433], a
+    jp routine_3C93
 
 SECTION "ROM0_3C81", ROM0[$3C81]
 routine_3C81::
+    call routine_1FA4
+    ld a, [$C443]
+    cp a, $F0
+    ret nz
+    ld a, [$C442]
+    cp a, $04
+    ret nc
+    jp routine_3CAB
 
 SECTION "ROM0_3C93", ROM0[$3C93]
 routine_3C93::
-; ...
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    call routine_21EA
+    jp routine_3CAB
+
+SECTION "ROM0_3CA0", ROM0[$3CA0]
+routine_3CA0::
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    ret  
+
+SECTION "ROM0_3CA8", ROM0[$3CA8]
+routine_3CA8::
+    jp routine_3CAB
+
+SECTION "ROM0_3CAB", ROM0[$3CAB]
+routine_3CAB::
+    ld a, $FF
+    ld [$C442], a
+    ld [$C443], a
+    ret
+
+SECTION "ROM0_3CB4", ROM0[$3CB4]
+routine_3CB4::
+    xor a
+    ld_abs [$FFC0], a
+    ld a, $37
+    ld [$C479], a
+    ldh a, [$FFC2]
+    ldh [$FF43], a
+    ld [$C47A], a
+    rst rst_wait_vblank
+    call routine_1A97
+    di   
+    ld hl, $C706
+    ld de, $C473
+    ld bc, $3D7B
+    ld a, [hl]
+    ld [de], a
+    ld a, $C3
+    ld [hl], a
+    inc l
+    inc e
+    ld a, [hl]
+    ld [de], a
+    ld [hl], c
+    inc l
+    inc e
+    ld a, [hl]
+    ld [de], a
+    ld [hl], b
+    inc e
+    ldh a, [$FF41]
+    ld [de], a
+    ld a, $C0
+    ldh [$FF41], a
+    ei   
+    ld a, $3C
+.outer_loop
+    push af
+    swap a
+    and a, $0F
+    ld l, a
+    ld a, $03
+    sub l
+    ld [$C478], a
+    ld l, $40
+    dec a
+    jr nz, .skip
+    ld l, $81
+    jr .skip3
+.skip
+    dec a
+    jr nz, .skip2
+    ld l, $81
+    jr .skip3
+.skip2
+    dec a
+    jr nz, .skip3
+    ld l, $D2
+.skip3
+    ld a, l
+    ldh [$FF47], a
+    ldh [$FF48], a
+    ldh [$FF49], a
+    ld a, $40
+    ld [$C477], a
+    ld h, $19
+    ld a, [$C479]
+    ld l, a
+    ld de, $C540
+    ld b, $90
+.inner_loop
+    ld c, [hl]
+    ld a, [$C478]
+    or a
+    jr z, .skip4
+.shift_loop
+    sra c
+    dec a
+    jr nz, .shift_loop
+.skip4
+    ld a, [$C47A]
+    add c
+    ld [de], a
+    inc l
+    ld a, [hl]
+    cp a, $80
+    jr nz, .skip5
+    ld l, $37
+.skip5
+    inc e
+    dec b
+    jr nz, .inner_loop
+    call stat_handler_common_entry
+    ei
+.wait_next_frame
+    ldh a, [$FF44]
+    cp a, 144
+    jr nc, .wait_next_frame
+.wait_vblank
+    ldh a, [$FF44]
+    cp a, 144
+    jr c, .wait_vblank
+    ld a, [$C479]
+    ld l, a
+    ld h, $19
+    inc l
+    ld a, [hl]
+    cp a, $80
+    jr nz, .skip6
+    ld l, $37
+.skip6
+    ld a, l
+    ld [$C479], a
+    pop af
+    dec a
+    jr nz, .outer_loop
+    di   
+    ld hl, $C473
+    ld de, $C706
+    ldi a, [hl]
+    ld [de], a
+    inc e
+    ldi a, [hl]
+    ld [de], a
+    inc e
+    ldi a, [hl]
+    ld [de], a
+    ld a, [hl]
+    ldh [$FF41], a
+    ei   
+    ret
+
+routine_3D8B::
+    push af
+    push hl
+    ldh a, [$FF44]
+    cp a, $90
+    jr nc, .skip
+    ld a, [$C477]
+    ld l, a
+    ld h, $C5
+    ld a, [hl]
+    ldh [$FF43], a
+    inc l
+    ld a, l
+    ld [$C477], a
+.skip
+    ld hl, $FF45
+    inc [hl]
+    pop hl
+    pop af
+    reti 
+
+SECTION "ROM0_3D98", ROM0[$3D98]
+routine_3D98::
+    ld a, $27
+    ldh [$FFB2], a
+    ldh a, [$FFC2]
+    ldh [$FF43], a
+    ld [$C473], a
+    ldh a, [$FFC1]
+    ldh [$FF42], a
+    ld [$C474], a
+    ld hl, table_3E07
+.outer_loop
+    ld a, [hl]
+    or a
+    jp z, routine_3DEC
+    push hl
+    push af
+    ld a, $0C
+    ld de, $0100
+    call routine_043E_entry
+    ld e, a
+    pop af
+    dec e
+    jr z, .skip
+    cpl  
+    inc a
+.skip
+    ld c, a
+    ld a, [hl]
+    push af
+    ld a, $0D
+    ld de, $0100
+    call routine_043E_entry
+    ld e,a
+    pop af
+    dec e
+    jr  z, .skip2
+    cpl  
+    inc a
+.skip2
+    ld b, a
+    call routine_3DF9
+    call routine_3E00
+    ld b, $03
+.loop
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    dec b
+    jr nz, .loop
+    pop hl
+    inc hl
+    jr .outer_loop
+
+SECTION "ROM0_3DEC", ROM0[$3DEC]
+routine_3DEC::
+    ld a, [$C473]
+    ldh [$FF43], a
+    ld a, [$C474]
+    ldh [$FF42], a
+    jp routine_3CAB
+
+SECTION "ROM0_3DF9", ROM0[$3DF9]
+routine_3DF9::
+    ld a, [$C474]
+    add c
+    ldh [$FF42], a
+    ret
+
+SECTION "ROM0_3E00", ROM0[$3E00]
+routine_3E00::
+    ld a, [$C473]
+    add b
+    ldh [$FF43], a
+    ret 
+
+table_3E07::
+    DB $02, $04, $08, $0C, $04, $0C, $06, $04, $00
 
 SECTION "ROM0_3E10", ROM0[$3E10]
 routine_3E10::
-; ...
+    ld a, c
+    bit 7, a
+    jr nz, .skip2
+    bit 6, a
+    jr nz, .skip
+    ldh [$FFB0], a
+    ld [$C31A], a
+    jp routine_3C93
+.skip
+    sub a,$40
+    ldh [$FFB1], a
+    jp routine_3C93
+.skip2
+    sub a, $80
+    ldh [$FFB2], a
+    jp routine_3C93
+
+SECTION "ROM0_3E2F", ROM0[$3E2F]
+routine_3E2F::
+    call diamond_wipe_out
+    jp routine_3C93
+
+SECTION "ROM0_3E35", ROM0[$3E35]
+routine_3E35::
+    call vertical_scale_out
+    jp routine_3C93
+
+SECTION "ROM0_3E3B", ROM0[$3E3B]
+routine_3E3B::
+    ld a, $01
+    ld_abs [$FFC0], a
+    call cross_wipe_out
+    jp routine_3C93
+
+SECTION "ROM0_3E46", ROM0[$3E46]
+routine_3E46::
+    call fade_out
+    jp routine_3C93
 
 SECTION "ROM0_3E4C", ROM0[$3E4C]
 routine_3E4C::
-; ...
+    ld_abs a, [$FFC0]
+    cp a, $01
+    jp z, cross_wipe_in
+    or a
+    jp nz, routine_3CB4
+    jp fade_in
 
 ; Fades the screen out to white.
 SECTION "ROM0_3E5B", ROM0[$3E5B]
 fade_out::
-; ...
+    ld d, $03
+.fade_step_loop
+    ldh a, [$FF47]
+    ld c, a
+    ld b, $00
+    ld e, $04
+.palette_math_loop
+    ld a, c
+    and a, $03
+    cp d
+    jr nz, .skip
+    dec a
+.skip
+    rra
+    rr b
+    rra  
+    rr b
+    rrc c
+    rrc c
+    dec e
+    jr nz, .palette_math_loop
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    ld a, b
+    ldh [$FF47], a
+    ldh [$FF48], a
+    ldh [$FF49], a
+    ld e, $06
+.delay_loop
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    dec e
+    jr nz, .delay_loop
+    dec d
+    jr nz, .fade_step_loop
+    ret
+
+
+SECTION "ROM0_3E96", ROM0[$3E96]
+routine_3E96::
+    call cross_wipe_in
+    jp routine_3C93
+
+SECTION "ROM0_3E9C", ROM0[$3E9C]
+routine_3E9C::
+    call fade_in
+    jp routine_3C93
 
 ; Fades the screen in from white.
 SECTION "ROM0_3EA2", ROM0[$3EA2]
 fade_in::
-; ...
+    ld d, $01
+.fade_step_loop
+    ld c, $D2
+    ld b, $00
+    ld e, $04
+.palette_math_loop
+    ld a, c
+    and a, $03
+    cp d
+    jr c, .skip
+    ld a, d
+.skip
+    rra
+    rr b
+    rra  
+    rr b
+    rrc c
+    rrc c
+    dec e
+    jr nz, .palette_math_loop
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    ld  a, b
+    ldh [$FF47], a
+    ldh [$FF48], a
+    ldh [$FF49], a
+    ld e, $06
+.delay_loop
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    dec e
+    jr nz, .delay_loop
+    inc d
+    ld a, d
+    cp a, $04
+    jr nz, .fade_step_loop
+    ret
 
 SECTION "ROM0_3EDF", ROM0[$3EDF]
 routine_3EDF::
+    call routine_3F78
+    jr z, routine_3EF6
+    ld de, $0104
+    call routine_1B66
+    ld de, $0105
+    call routine_1B66
+    call routine_3CAB
+    ld a, $01
+    ret
 
+SECTION "ROM0_3EF6", ROM0[$3EF6]
+routine_3EF6::
+    ld a, c
+    inc a
+    jr nz, routine_3F06
+    ld de, $0103
+    call routine_1B66
+    call routine_3CAB
+    ld a, $01
+    ret
+
+SECTION "ROM0_3F06", ROM0[$3F06]
+routine_3F06::
+    ld [hl], c
+    ld a, c
+    ld [$C71D], a
+    inc hl
+    push hl
+    ld a, $80
+    add c
+    ld l, a
+    ld a, $7E
+    adc a, $00
+    ld h, a
+    ld a, $0C
+    call banked_load
+    pop hl
+    ld [hl], a
+    ld de, $0107
+    call routine_1B66
+    call routine_3CAB
+    xor a
+    ret
 
 SECTION "ROM0_3F28", ROM0[$3F28]
 routine_3F28::
+    call routine_3F78
+    jr z, routine_3EF6
+    ld de, $0104
+    call routine_1B66
+.loop
+    ld de, $0106
+    call routine_1B66
+    ld_abs a, [$FF8C]
+    inc a
+    jr z, .loop
+    add a
+    add a, $B7
+    ld l, a
+    ld a, $C2
+    adc a, $00
+    ld h, a
+    ld a, $FF
+    ldi [hl], a
+    ldd [hl], a
+    jr routine_3EF6
 
 SECTION "ROM0_3F4E", ROM0[$3F4E]
 routine_3F4E::
+    ld a, $80
+    add c
+    ld l, a
+    ld h, $7F
+    ld a, $0C
+    call banked_load
+    ld b, a
+    ld a, c
+    add a
+    add a, $DA
+    ld l, a
+    ld a, $C2
+    adc a, $00
+    ld h, a
+    inc [hl]
+    inc hl
+    ld [hl], b
+    ld hl, $C2D9
+    inc [hl]
+    ld a, c
+    ld [$C71D], a
+    ld de, $0102
+    call routine_1B66
+    jp routine_3CAB
+
+SECTION "ROM0_3F78", ROM0[$3F78]
+routine_3F78::
+    ld hl, $C2B9
+    ld b, $10
+.loop
+    ld a, [hl]
+    inc a
+    ret z
+    inc hl
+    inc hl
+    dec b
+    jr nz, .loop
+    or a
+    ret 
+
+SECTION "ROM0_3F87", ROM0[$3F87]
+routine_3F87::
+    ld a, $18
+    ldh [$FFB2], a
+    ld b, $03
+.outer_loop
+    ldh a, [$FF47]
+    xor a, $FF
+    ldh [$FF47], a
+    ldh [$FF48], a
+    ldh [$FF49], a
+    ld c, $04
+.inner_loop
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    dec c
+    jr nz, .inner_loop
+    ldh a, [$FF47]
+    xor a, $FF
+    ldh [$FF47], a
+    ldh [$FF48], a
+    ldh [$FF49], a
+    ld c, $06
+.inner_loop2
+    call routine_2F7F
+    rst rst_wait_vblank
+    call routine_1A97
+    dec c
+    jr nz, .inner_loop2
+    dec b
+    jr nz, .outer_loop
+    jp routine_3C93
+
+SECTION "ROM0_3FBF", ROM0[$3FBF]
+routine_3FBF::
+    ld hl, $C2DA
+    ld b, $1C
+    xor a
+.loop
+    ldi [hl], a
+    dec b
+    jr nz, .loop
+    xor a
+    ld [$C2D9], a
+    jp routine_3C93
+
+SECTION "ROM0_3FD0", ROM0[$3FD0]
+routine_3FD0::
+    ld a, $0C
+    rst rst_bank_switch
+    ld de, $7F80
+    ld hl, $C2DA
+    ld b, $08
+.loop
+    ld a, [hl]
+    or a, $09
+    ldi [hl], a
+    ld a, [de]
+    inc de
+    ldi [hl], a
+    dec b
+    jr nz, .loop
+
+    ld b, $06
+.loop2
+    ld a, [hl]
+    or a, $01
+    ldi [hl], a
+    ld a, [de]
+    inc de
+    ldi [hl], a
+    dec b
+    jr nz, .loop2
+    ld a, $4E
+    ld [$C2D9], a
+    jp routine_3C93

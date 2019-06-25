@@ -69,6 +69,8 @@ enable_save_ram_entry:: jp enable_save_ram
 
 ; ...
 
+SECTION "ROM0_01E9", ROM0[$01E9]
+routine_14AC_entry:: jp routine_14AC
 SECTION "ROM0_01EC", ROM0[$01EC]
 transfer_map_oam_entry:: jp transfer_map_oam
 ; ...
