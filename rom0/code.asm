@@ -830,6 +830,9 @@ SECTION "ROM0_0533", ROM0[$0533]
 routine_0533::
     xor a
     ldh [$FF9B], a
+    ; fallthrough
+SECTION "ROM0_0536", ROM0[$0536]
+routine_0536::
     xor a
     ld [$C7CA], a
     ld [$C7CF], a

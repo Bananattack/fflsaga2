@@ -34,9 +34,10 @@ SECTION "ROM0_0180", ROM0[$0180]
 u24_mul_u8_entry:: jp u24_mul_u8
 SECTION "ROM0_0183", ROM0[$0183]
 u24_div_u8_entry:: jp u24_div_u8
-
-; ...
-
+SECTION "ROM0_0186", ROM0[$0186]
+routine_0AF3_entry:: jp routine_0AF3
+SECTION "ROM0_0189", ROM0[$0189]
+routine_166B_entry:: jp routine_166B
 SECTION "ROM0_018C", ROM0[$018C]
 routine_0615_entry:: jp routine_0615
 SECTION "ROM0_018F", ROM0[$018F]
@@ -59,18 +60,51 @@ SECTION "ROM0_01A7", ROM0[$01A7]
 routine_0494_entry:: jp routine_0494
 SECTION "ROM0_01AA", ROM0[$01AA]
 bank_switch_entry:: jp bank_switch
-
-; ...
-
+SECTION "ROM0_01AD", ROM0[$01AD]
+routine_0A5C_entry:: jp routine_0A5C
+SECTION "ROM0_01B0", ROM0[$01B0]
+routine_0546_entry:: jp routine_0546
+SECTION "ROM0_01B3", ROM0[$01B3]
+routine_0533_entry:: jp routine_0533
+SECTION "ROM0_01B6", ROM0[$01B6]
+routine_0536_entry:: jp routine_0536
+SECTION "ROM0_01B9", ROM0[$01B9]
+routine_18C3_entry:: jp routine_18C3
+SECTION "ROM0_01BC", ROM0[$01BC]
+routine_05EF_entry:: jp routine_05EF
+SECTION "ROM0_01BF", ROM0[$01BF]
+routine_14E3_entry:: jp routine_14E3
+SECTION "ROM0_01C2", ROM0[$01C2]
+routine_151C_entry:: jp routine_151C
+SECTION "ROM0_01C5", ROM0[$01C5]
+routine_0901_entry:: jp routine_0901
 SECTION "ROM0_01C8", ROM0[$01C8]
 disable_save_ram_entry:: jp disable_save_ram
 SECTION "ROM0_01CB", ROM0[$01CB]
 enable_save_ram_entry:: jp enable_save_ram
-
-; ...
-
+SECTION "ROM0_01CE", ROM0[$01CE]
+routine_0A2B_entry:: jp routine_0A2B
+SECTION "ROM0_01D1", ROM0[$01D1]
+routine_0AC2_entry:: jp routine_0AC2
+SECTION "ROM0_01D4", ROM0[$01D4]
+routine_18A7_entry:: jp routine_18A7
+SECTION "ROM0_01D7", ROM0[$01D7]
+routine_1892_entry:: jp routine_1892
+SECTION "ROM0_01DA", ROM0[$01DA]
+routine_1899_entry:: jp routine_1899
+SECTION "ROM0_01DD", ROM0[$01DD]
+routine_18A0_entry:: jp routine_18A0
+SECTION "ROM0_01E0", ROM0[$01E0]
+routine_18AE_entry:: jp routine_18AE
+SECTION "ROM0_01E3", ROM0[$01E3]
+routine_18B5_entry:: jp routine_18B5
+SECTION "ROM0_01E6", ROM0[$01E6]
+routine_066E_entry:: jp routine_066E
 SECTION "ROM0_01E9", ROM0[$01E9]
 routine_14AC_entry:: jp routine_14AC
 SECTION "ROM0_01EC", ROM0[$01EC]
 transfer_map_oam_entry:: jp transfer_map_oam
-; ...
+SECTION "ROM0_01EF", ROM0[$01EF]
+routine_0550_entry:: jp routine_0550
+SECTION "ROM0_01F2", ROM0[$01F2]
+routine_06F4_entry:: jp routine_06F4
