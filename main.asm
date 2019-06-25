@@ -30,16 +30,6 @@ TEMP_OPERAND\@ EQUS STRSUB("\2", 2, STRLEN("\2") - 2)
     ENDC
 ENDM
 
-ld_abs_a_: MACRO
-
-ENDM
-
-; force a 16-bit ld a, [$nnnn] when RGBDS would try to replace with ldh
-ld_a_abs_: MACRO
-    DB $FA
-    DW \1
-ENDM
-
 INCLUDE "ram.asm"
 INCLUDE "rom0.asm"
 INCLUDE "rom1.asm"
