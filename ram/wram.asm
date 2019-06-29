@@ -12,8 +12,8 @@ ENDM
 PLAYER_EQUIP_COUNT EQU 8
 PLAYER_STRUCT: MACRO
 \1_name:: DS 4
+\1_sprite_id:: DS 1
 \1_class:: DS 1
-\1_unknown:: DS 1
 \1_max_hp:: DS 2
 \1_hp:: DS 2
 \1_str:: DS 1
