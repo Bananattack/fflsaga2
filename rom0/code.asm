@@ -1256,6 +1256,7 @@ script_handle_opcode::
     jr nc, script_handle_other_opcode
     ; fallthrough
 
+SECTION "ROM0_0719", ROM0[$0719]
 script_handle_instruction_opcode::
     ld hl, script_instruction_jump_table
     add a
@@ -1267,6 +1268,7 @@ script_handle_instruction_opcode::
     pop hl
     jp hl
 
+SECTION "ROM0_0724", ROM0[$0724]
 script_handle_other_opcode::
     ld hl, $6560
     sub a, $4E
@@ -1558,6 +1560,7 @@ routine_08A3::
     jr nz, .loop
     ret
 
+SECTION "ROM0_08AA", ROM0[$08AA]
 routine_08AA::
     ld hl, $9C40
     ld de, $9C20
@@ -2561,6 +2564,7 @@ SECTION "ROM0_0DED", ROM0[$0DED]
 routine_0DED::
     call routine_0DF0
     ; fallthrough
+SECTION "ROM0_0DF0", ROM0[$0DF0]
 routine_0DF0::
     ld hl, $C780
     ldd a, [hl]
@@ -2798,6 +2802,7 @@ routine_0F58::
         DB $01 ; subroutine bank
     ret
 
+SECTION "ROM0_0F5F", ROM0[$0F5F]
 routine_0F5F::
     rst rst_script_read_byte
     ld c, a
@@ -2808,6 +2813,7 @@ routine_0F5F::
         DB $01 ; subroutine bank
     ret
 
+SECTION "ROM0_0F6A", ROM0[$0F6A]
 routine_0F6A::
     ld hl, $C70A
     rst rst_script_read_byte
@@ -2869,6 +2875,7 @@ routine_0FAE::
     call banked_load
     ldh [$FFB0], a
     ld [$C31A], a
+    ; fallthrough
 SECTION "ROM0_0FC9", ROM0[$0FC9]
 routine_0FC9::
     jp routine_14FF
@@ -3135,6 +3142,7 @@ routine_1115::
     ld de, $6640
     jp routine_153B
 
+SECTION "ROM0_112E", ROM0[$112E]
 routine_112E::
     ld a, [$C709]
     ld hl , $C20F
@@ -3292,9 +3300,11 @@ SECTION "ROM0_11FE", ROM0[$11FE]
 routine_11FE::
     call routine_13A8
     ; fallthrough
+SECTION "ROM0_1201", ROM0[$1201]
 routine_1201::
     call routine_13B6
     ; fallthrough
+SECTION "ROM0_1204", ROM0[$1204]
 routine_1204::
     call routine_05D9
     ldi a, [hl]
@@ -3573,6 +3583,7 @@ routine_1334::
     ld [hl], $00
     ret
 
+SECTION "ROM0_1378", ROM0[$1378]
 routine_1378::
     ld hl, $D900
     rst rst_script_read_byte
@@ -3585,6 +3596,7 @@ routine_1378::
     ld hl, $C785
     jp routine_157A
 
+SECTION "ROM0_138A", ROM0[$138A]
 routine_138A::
     rst rst_script_read_byte
     ld b, $02
@@ -3596,6 +3608,7 @@ routine_138A::
     jp z, routine_1549
     jp routine_12E6
 
+SECTION "ROM0_139A", ROM0[$139A]
 routine_139A::
     push af
     ld hl, $C206
@@ -3607,6 +3620,7 @@ routine_139A::
     pop  af
     ret
 
+SECTION "ROM0_13A8", ROM0[$13A8]
 routine_13A8::
     push af
     ld hl, $C209
@@ -3618,6 +3632,7 @@ routine_13A8::
     pop af
     ret
 
+SECTION "ROM0_13B6", ROM0[$13B6]
 routine_13B6::
     rst rst_script_read_byte
     cp a, $05
@@ -3907,15 +3922,18 @@ routine_155A::
     call script_execute_step
     jr .loop
 
+SECTION "ROM0_1571", ROM0[$1571]
 routine_1571::
     pop af
     ld [$C77C], a
     pop hl
     pop de
     ; fallthrough
+SECTION "ROM0_1577", ROM0[$1577]
 routine_1577::
     jp script_save_pointer
 
+SECTION "ROM0_157A", ROM0[$157A]
 routine_157A::
     ld de, $C785
     ld a, [$C77B]
@@ -4333,6 +4351,7 @@ poll_joypad_long::
     ld a, [$ff00+c]
     ld a, [$ff00+c]
     ; fallthrough
+SECTION "ROM0_1767", ROM0[$1767]
 poll_joypad_short::
     ld a, [$ff00+c]
     ld a, [$ff00+c]
@@ -4602,6 +4621,7 @@ routine_18BC::
     ldh a, [$FF8C]
     ret
 
+SECTION "ROM0_18C3", ROM0[$18C3]
 routine_18C3::
     push af
     push bc
@@ -4620,6 +4640,7 @@ routine_18C3::
     rst rst_bank_switch
     jp pop_hl_de_bc_af
 
+SECTION "ROM0_18DC", ROM0[$18DC]
 routine_18DC::
     push af
     push bc
@@ -4756,6 +4777,7 @@ routine_19D6::
 SECTION "ROM0_19F0", ROM0[$19F0]
 routine_19F0::
     xor a
+SECTION "ROM0_19F1", ROM0[$19F1]
 routine_19F1::
     ld [$C45B], a
     ldh [$FF47], a
@@ -5056,6 +5078,7 @@ map_load_tileset_types::
     jr nz, .loop
     ret
 
+SECTION "ROM0_1BDB", ROM0[$1BDB]
 routine_1BDB::
     ld a, [$C442]
     ld l, a
@@ -8643,6 +8666,7 @@ map_handle_buttons::
     and a, $01
     ret z
     ; fallthrough
+SECTION "ROM0_3043", ROM0[$304E]
 map_pressed_a::
     ld e, $1F
     call routine_063E_entry
@@ -8794,6 +8818,7 @@ routine_3104::
     or a
     ret nz
     ; fallthrough
+SECTION "ROM0_3137", ROM0[$3137]
 routine_3137::
     ld a, [hl]
     call routine_0621_entry
@@ -8899,6 +8924,7 @@ routine_3183::
     scf  
     ret
 
+SECTION "ROM0_31BE", ROM0[$31BE]
 routine_31BE::
     ld a, l
     and a, $F0
@@ -10942,7 +10968,8 @@ routine_3CB4::
     ei   
     ret
 
-routine_3D8B::
+SECTION "ROM0_3D7B", ROM0[$3D7B]
+routine_3D7B::
     push af
     push hl
     ldh a, [$FF44]
