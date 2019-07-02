@@ -63,7 +63,7 @@ bank_switch_entry:: jp bank_switch
 SECTION "ROM0_01AD", ROM0[$01AD]
 routine_0A5C_entry:: jp routine_0A5C
 SECTION "ROM0_01B0", ROM0[$01B0]
-routine_0546_entry:: jp routine_0546
+menu_reset_cursor_entry:: jp menu_reset_cursor
 SECTION "ROM0_01B3", ROM0[$01B3]
 routine_0533_entry:: jp routine_0533
 SECTION "ROM0_01B6", ROM0[$01B6]

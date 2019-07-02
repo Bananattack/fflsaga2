@@ -847,7 +847,7 @@ routine_0536::
     jp memset8
 
 SECTION "ROM0_0546", ROM0[$0546]
-routine_0546::
+menu_reset_cursor::
     ld hl, $FF97
     ld a, $FF
     ldi [hl], a
@@ -1287,8 +1287,8 @@ script_handle_other_opcode::
 SECTION "ROM0_073B", ROM0[$073B]
 routine_073B::
     call routine_075E
-    call routine_0755
-    call routine_07AA
+    call textbox_write_character
+    call textbox_save_current_pointer
     ldh a, [$FFA0]
     and a
     ret z
@@ -1301,10 +1301,10 @@ routine_073B::
     jp routine_08D6
 
 SECTION "ROM0_0755", ROM0[$0755]
-routine_0755::
+textbox_write_character::
     ld hl, $C7A1
     inc [hl]
-    call routine_079F
+    call textbox_load_current_pointer
     ldi [hl], a
     ret
 
@@ -1344,7 +1344,7 @@ routine_075E::
     ret
 
 SECTION "ROM0_078D", ROM0[$078D]
-routine_078D::
+textbox_load_line_pointer::
     ld a, [$C783]
     ld l, a
     ld a, [$C784]
@@ -1352,7 +1352,7 @@ routine_078D::
     ret
 
 SECTION "ROM0_0796", ROM0[$0796]
-routine_0796::
+textbox_save_line_pointer::
     ld a, l
     ld [$C783], a
     ld a, h
@@ -1360,7 +1360,7 @@ routine_0796::
     ret
 
 SECTION "ROM0_079F", ROM0[$079F]
-routine_079F::
+textbox_load_current_pointer::
     push af
     ld a, [$C781]
     ld l, a
@@ -1370,7 +1370,7 @@ routine_079F::
     ret
 
 SECTION "ROM0_07AA", ROM0[$07AA]
-routine_07AA::
+textbox_save_current_pointer::
     push af
     ld a, l
     ld [$C781], a
@@ -1485,8 +1485,8 @@ routine_0800::
     ld a, $FF
     call memset16
     ld hl, $C814
-    call routine_0796
-    call routine_07AA
+    call textbox_save_line_pointer
+    call textbox_save_current_pointer
 .loop
     call script_execute_step
     jr .loop
@@ -1561,7 +1561,7 @@ routine_08A3::
     ret
 
 SECTION "ROM0_08AA", ROM0[$08AA]
-routine_08AA::
+textbox_scroll_line_up::
     ld hl, $9C40
     ld de, $9C20
     ld b, $E0
@@ -1771,8 +1771,8 @@ routine_0916::
 
     ld a, b
     ld [$C77E], a
-    call routine_0796
-    call routine_07AA
+    call textbox_save_line_pointer
+    call textbox_save_current_pointer
     ld hl, $C79B
     ld de, $C79F
     ld c, [hl]
@@ -2488,10 +2488,10 @@ routine_0D05::
     ld a, c
     call routine_160C
 .labelD8A
-    call routine_079F
-    inc  hl
-    inc  hl
-    jr routine_0DEA
+    call textbox_load_current_pointer
+    inc hl
+    inc hl
+    jr textbox_save_current_pointer_entry
 
 SECTION "ROM0_0D91", ROM0[$0D91]
 routine_0D91::
@@ -2507,33 +2507,33 @@ routine_0D91::
     ret
 
 SECTION "ROM0_0DA6", ROM0[$0DA6]
-routine_0DA6::
+textbox_inc_current_pointer::
     ld hl, $C7A1
     inc [hl]
-    call routine_079F
+    call textbox_load_current_pointer
     inc hl
-    jr routine_0DEA
+    jr textbox_save_current_pointer_entry
 
 SECTION "ROM0_0DB0", ROM0[$0DB0]
-routine_0DB0::
+textbox_dec_current_pointer::
     ld hl, $C7A1
     dec [hl]
-    call routine_079F
+    call textbox_load_current_pointer
     dec hl
-    jr routine_0DEA
+    jr textbox_save_current_pointer_entry
 
 SECTION "ROM0_0DBA", ROM0[$0DBA]
-routine_0DBA::
+textbox_sub_line_pointer::
     ld hl, $C7A3
     dec [hl]
     ld a, [$C77E]
     cpl
     inc a
     ld b, $FF
-    jr routine_0DD0
+    jr _textbox_move_line_pointer
 
 SECTION "ROM0_0DC7", ROM0[$0DC7]
-routine_0DC7::
+textbox_add_line_pointer::
     ld hl, $C7A3
     inc [hl]
     ld a, [$C77E]
@@ -2541,14 +2541,14 @@ routine_0DC7::
     ; fallthrough
 
 SECTION "ROM0_0DD0", ROM0[$0DD0]
-routine_0DD0::
+_textbox_move_line_pointer::
     ld c, a
-    call routine_078D
+    call textbox_load_line_pointer
     add hl, bc
-    call routine_0796
-    call routine_079F
+    call textbox_save_line_pointer
+    call textbox_load_current_pointer
     add hl, bc
-    jr routine_0DEA
+    jr textbox_save_current_pointer_entry
 
 SECTION "ROM0_0DDE", ROM0[$0DDE]
 routine_0DDE::
@@ -2558,12 +2558,12 @@ routine_0DDE::
     add [hl]
     ld [hl], a
     ld a, c
-    call routine_079F
+    call textbox_load_current_pointer
     rst rst_hl_plus_a
 
 SECTION "ROM0_0DEA", ROM0[$0DEA]
-routine_0DEA::
-    jp routine_07AA
+textbox_save_current_pointer_entry::
+    jp textbox_save_current_pointer
 
 SECTION "ROM0_0DED", ROM0[$0DED]
 routine_0DED::
@@ -2576,27 +2576,27 @@ routine_0DF0::
     ld [hl], a
     ldh a, [$FFA0]
     and a
-    jr z, .done
+    jr z, .next_line
     cp a, $04
-    jr nc, .done
+    jr nc, .next_line
     call routine_0E30
     ld de, $9D01
     cp a, $03
     jr z, .skip
     ld de, $9CC1
 .skip
-    call routine_078D
+    call textbox_load_line_pointer
     call u16_cmp
-    jr nz, .done
-    call routine_08AA
-    call routine_078D
-    jr routine_0DEA
-.done
-    call routine_078D
+    jr nz, .next_line
+    call textbox_scroll_line_up
+    call textbox_load_line_pointer
+    jr textbox_save_current_pointer_entry
+.next_line
+    call textbox_load_line_pointer
     ld a, [$C77E]
     rst rst_hl_plus_a
-    call routine_07AA
-    call routine_0796
+    call textbox_save_current_pointer
+    call textbox_save_line_pointer
     ld hl, $C7A3
     inc [hl]
     dec hl
@@ -2625,7 +2625,7 @@ routine_0E30::
     ld hl, $C7A6
     ld b, $20
     call memclear8
-    call routine_0546
+    call menu_reset_cursor
 .skip
     call oam_transfer
     call routine_0E72
@@ -2652,8 +2652,8 @@ SECTION "ROM0_0E72", ROM0[$0E72]
 routine_0E72::
     call routine_0E9C
     ld hl, $9C41
-    call routine_07AA
-    call routine_0796
+    call textbox_save_current_pointer
+    call textbox_save_line_pointer
     ld e, $50
     ld bc, $1408
     ldh a, [$FF8B]
@@ -3286,7 +3286,7 @@ routine_11D8::
     call routine_1648
     and a
     jr nz, routine_11F2
-    call routine_0DA6
+    call textbox_inc_current_pointer
     call routine_13A8
     ld a, c
     jr routine_1204
@@ -3648,10 +3648,10 @@ routine_13B6::
 SECTION "ROM0_13BE", ROM0[$13BE]
 script_instruction_jump_table::
     DW routine_0B0F
-    DW routine_0DA6
-    DW routine_0DB0
-    DW routine_0DBA
-    DW routine_0DC7
+    DW textbox_inc_current_pointer
+    DW textbox_dec_current_pointer
+    DW textbox_sub_line_pointer
+    DW textbox_add_line_pointer
     DW routine_0DF0
     DW routine_0DED
     DW routine_0CCC
@@ -3809,7 +3809,7 @@ SECTION "ROM0_14D5", ROM0[$14D5]
 routine_14D5::
     xor a
     ld [$C798], a
-    call routine_0546
+    call menu_reset_cursor
     call routine_0533
     ld a, $02
     ldh [$FF96], a
@@ -3844,7 +3844,7 @@ SECTION "ROM0_150A", ROM0[$150A]
 routine_150A::
     xor a
     ldh [$FF96], a
-    call routine_0546
+    call menu_reset_cursor
     ld hl, $CC80
     ld b, $20
     call memclear8
