@@ -83,7 +83,7 @@ disable_save_ram_entry:: jp disable_save_ram
 SECTION "ROM0_01CB", ROM0[$01CB]
 enable_save_ram_entry:: jp enable_save_ram
 SECTION "ROM0_01CE", ROM0[$01CE]
-routine_0A2B_entry:: jp routine_0A2B
+draw_window_entry:: jp draw_window
 SECTION "ROM0_01D1", ROM0[$01D1]
 routine_0AC2_entry:: jp routine_0AC2
 SECTION "ROM0_01D4", ROM0[$01D4]

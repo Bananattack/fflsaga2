@@ -1743,7 +1743,7 @@ routine_0916::
     ld a, [$C7D2]
     bit 1, a
     jr nz, .skip3
-    call routine_0A2B
+    call draw_window
 .skip3
 
     ld a, [$C79D]
@@ -1821,8 +1821,15 @@ routine_0A1F::
     rst rst_bank_switch
     ret
 
+
+; Draws a window into the given destination buffer in work RAM.
+;
+; Arguments:
+; - b = width (minimum 2)
+; - c = height (minimum 2)
+; - [$C799] = destination buffer (0 = $C800, 1 = $D000)
 SECTION "ROM0_0A2B", ROM0[$0A2B]
-routine_0A2B::
+draw_window::
     dec b
     dec b
     dec c
@@ -1836,8 +1843,8 @@ routine_0A2B::
 .skip
 
     ld a, $F7
-    call routine_0A52
-.loop
+    call .draw_outer_row
+.draw_inner_row
     ldi [hl], a
     push af
     ld a, $FF
@@ -1848,14 +1855,12 @@ routine_0A2B::
     ldi [hl], a
     dec a
     dec c
-    jr nz, .loop
+    jr nz, .draw_inner_row
 
     inc a
     inc a
     ; fallthrough
-
-SECTION "ROM0_0A52", ROM0[$0A52]
-routine_0A52::
+.draw_outer_row
     ldi [hl], a
     ld b, e
     inc a
@@ -2660,7 +2665,7 @@ routine_0E72::
     ld hl, $C7A5
     ld [hl], e
     push bc
-    call routine_0A2B
+    call draw_window
     pop bc
     ld de, $9C00
     jp routine_0AC2
